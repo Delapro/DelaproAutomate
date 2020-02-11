@@ -32,3 +32,42 @@ Function Exit-Auftrag {
     Send-Key -Keys "{ESC}"
 
 }
+
+Function Out-Auftrag {
+    [CmdletBinding()]
+    Param(
+        [Switch]$IgnoreCall,
+        [Validateset('Win', 'Ansicht', 'E-Mail')]
+        [String]$Treiber,
+        [Validateset('Rechnung', 'Kulanz', 'Reklamation', 'Gutschrift', 'Kostenvoranschlag', 'Technikerlaufzettel')]
+        [String]$Formular
+    )
+
+    Select-App -App "Delapro"
+    If (-Not ($IgnoreCall)) {
+        Send-Key -Keys "{F6}"
+    }
+
+    # Druckertreiberauswahl
+    Switch ($Treiber) {
+        'Win'       {Send-Key -Keys "w"}
+        'Ansicht'   {Send-Key -Keys "a"}
+        'E-Mail'    {Send-Key -Keys "e"}
+    }
+    Send-Key -Keys "{DOWN}"
+
+    # TODO: Schachtauswahl
+
+    # Formularauswahl
+    Switch ($Formular) {
+        'Rechnung'  {Send-Key -Keys 'r'}
+        'Gutschrift'  {Send-Key -Keys 'g'}
+        'Kostenvoranschlag'  {Send-Key -Keys 'k'}
+        'Technikerlaufzettel'  {Send-Key -Keys 't'}
+        # TODO: Rest
+    }
+    Send-Key -Keys "{DOWN}"
+
+    # Auslösen
+    Send-Key -Keys "{PGDN}"
+}
