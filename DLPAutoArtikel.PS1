@@ -11,8 +11,6 @@ Function New-Artikel {
     )
     
     Select-App -App "Delapro"
-    # Startpunkt muss das Hauptmenü sein!
-    Send-Key -Keys "{F4}"  # Leistungs/Materialverwaltung
     Send-Key -Keys "{F2}"  # Anlegen
     
     # Anlegenmaske ausfüllen
@@ -64,5 +62,20 @@ Function New-Material {
     )
 
     New-Artikel -BelbebNr $BelbebNr -BebArt $BebArt -Artikelgruppe $Artikelgruppe -Text $Text
+
+}
+
+Function Enter-Artikel {
+
+    Select-App -App "Delapro"
+    # Startpunkt muss das Hauptmenü sein!
+    Send-Key -Keys "{F4}"  # Leistungs/Materialverwaltung
+
+}
+
+Function Exit-Artikel {
+
+    Select-App -App "Delapro"
+    Send-Key -Keys "{ESC}"
 
 }

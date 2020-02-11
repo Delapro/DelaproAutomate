@@ -10,6 +10,21 @@ Function New-Kunde {
     )
     
     Select-App -App "Delapro"
-    Send-Key -Keys "{F2}{F2}{ENTER}{ENTER}$KunAnrede{ENTER}$KunTitel{ENTER}$KunVorname{ENTER}$KunName{PGDN}{PGDN}{PGDN}{ESC}"
+    Send-Key -Keys "{F2}{ENTER}{ENTER}$KunAnrede{ENTER}$KunTitel{ENTER}$KunVorname{ENTER}$KunName{PGDN}{PGDN}{PGDN}"
+
+}
+
+Function Enter-Kunde {
+
+    Select-App -App "Delapro"
+    # Startpunkt muss das Hauptmenü sein!
+    Send-Key -Keys "{F2}"
+
+}
+
+Function Exit-Kunde {
+
+    Select-App -App "Delapro"
+    Send-Key -Keys "{ESC}"
 
 }
