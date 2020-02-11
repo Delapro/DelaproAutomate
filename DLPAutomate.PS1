@@ -7,7 +7,11 @@ New-Kunde
 Exit-Kunde
 Enter-Auftrag
 New-Auftrag
-New-AufPos
+New-AufPos -BelBebNr 10
+New-AufPos -BelBebNr 51
+New-AufPos -BelBebNr 120
+New-AufPos -BelBebNr 1620
+New-AufPos -BelBebNr 9330
 New-AufPos -Save
 Exit-Auftrag
 Enter-Material

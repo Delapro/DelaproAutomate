@@ -10,7 +10,7 @@ Function New-AufPos {
     )
     
     Select-App -App "Delapro"
-    Send-Key -Keys ' '
+    Send-Key -Keys ' {LEFT}'
     Start-Sleep -Milliseconds 200
     Send-Key -Keys "$AufPosBelBebNr{PGDN}{RIGHT}"
     Start-Sleep -Milliseconds 200
