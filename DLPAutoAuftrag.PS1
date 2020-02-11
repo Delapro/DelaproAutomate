@@ -8,7 +8,7 @@ Function New-Auftrag {
         [String]$AufPatient='Testpatient',
         [String]$AufKrankenkasse='Privat',
         [String]$AufZahnfarbe='A3',
-        [Stirng]$AufBeleg='Beleg',
+        [String]$AufBeleg='Beleg',
         [String]$AufArtDerArbeit='Reparatur'
     )
     
