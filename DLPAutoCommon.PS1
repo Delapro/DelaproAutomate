@@ -68,3 +68,14 @@ Function Copy-Screen {
 
     $path
 }
+
+Function Exit-AcrobatReader {
+
+    $reader = "AcroRd32"
+
+    Start-Sleep -Milliseconds 200
+    
+    If ($p=Get-Process -Name $reader) {
+        $p | Stop-Process -Force
+    }
+}
