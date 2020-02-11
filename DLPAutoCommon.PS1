@@ -37,7 +37,7 @@ $wshell
     #>
 }
 
-Function Send-Keys {
+Function Send-Key {
     [CmdletBinding()]
     Param(
         [String]$Keys
