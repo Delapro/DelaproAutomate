@@ -58,7 +58,7 @@ Function Copy-Screen {
         [String]$path=(New-TemporaryFile)
     )
 
-    $bounds = [Drawing.Rectanlge]::FromLTRB($X, $Y, $Width, $Height)
+    $bounds = [Drawing.Rectangle]::FromLTRB($X, $Y, $Width, $Height)
     $bmp = New-Object Drawing.Bitmap $bounds.width, $bounds.height
     $graphics = [Drawing.Graphics]::FromImage($bmp)
     $graphics.CopyFromScreen($bounds.Location, [Drawing.Point]::Empty, $bound.Size)
