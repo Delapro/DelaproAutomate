@@ -5,7 +5,7 @@ Function New-Auftrag {
     Param(
         [String]$AufXMLNummer='3-6-9',
         [String]$AufKunNummer='1',
-        [Date]$AufDatum=(Get-Date),
+        [DateTime]$AufDatum=(Get-Date),
         [String]$AufPatient='Testpatient',
         [String]$AufKrankenkasse='Privat',
         [String]$AufZahnfarbe='A3',
