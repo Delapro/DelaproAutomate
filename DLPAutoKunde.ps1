@@ -10,7 +10,11 @@ Function New-Kunde {
     )
     
     Select-App -App "Delapro"
-    Send-Key -Keys "{F2}{ENTER}{ENTER}$KunAnrede{ENTER}$KunTitel{ENTER}$KunVorname{ENTER}$KunName{PGDN}{PGDN}{PGDN}"
+    Send-Key -Keys "{F2}{ENTER}{ENTER}$KunAnrede{ENTER}$KunTitel{ENTER}$KunVorname{ENTER}$KunName{PGDN}"
+    # zweite Seite
+    Send-Key -Keys "{PGDN}"
+    # dritte Seite
+    Send-Key -Keys "{PGDN}"
 
 }
 
