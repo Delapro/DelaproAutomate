@@ -6,6 +6,7 @@ Function Initialize-Automation {
 
     Add-Type -AssemblyName System.Windows.Forms
     [void] [System.Reflection.Assembly]::LoadWithPartialName("'Microsoft.VisualBasic")
+    [void] [System.Reflection.Assembly]::LoadWithPartialName("'System.Drawing")
 
 }
 
@@ -45,4 +46,25 @@ Function Send-Key {
 
     # https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.sendkeys?view=netframework-4.7.2
     [System.Windows.Forms.SendKeys]::SendWait($Keys)
+}
+
+Function Copy-Screen {
+    [CmdletBinding()]
+    Param(
+        [int]$X,
+        [int]$Y,
+        [int]$Width,
+        [int]$Height,
+        [String]$path=(New-TemporaryFile)
+    )
+
+    $bounds = [Drawing.Rectanlge]::FromLTRB($X, $Y, $Width, $Height)
+    $bmp = New-Object Drawing.Bitmap $bounds.width, $bounds.height
+    $graphics = [Drawing.Graphics]::FromImage($bmp)
+    $graphics.CopyFromScreen($bounds.Location, [Drawing.Point]::Empty, $bound.Size)
+    $bmp.Save($path)
+    $graphics.Dispose()
+    $bmp.Dispose()
+
+    $path
 }
