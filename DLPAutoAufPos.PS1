@@ -5,8 +5,7 @@ Function New-AufPos {
     Param(
         [String]$AufPosBelBebNr='10',
         [String]$AufPosMenge='1',
-        [String]$AufPosTechniker='1',
-        [switch]$Save
+        [String]$AufPosTechniker='1'
     )
     
     Select-App -App "Delapro"
@@ -22,8 +21,19 @@ Function New-AufPos {
     Start-Sleep -Milliseconds 200
     Send-Key -Keys "{DOWN}"
 
+}
+
+Function Exit-AufPos {
+    [CmdletBinding()]
+    Param(
+        [Switch]$Save
+    )
+
+    Select-App -App "Delapro"
     If ($Save) {
         Send-Key -Keys "{F10}"
+    } else {
+        Send-Key -Keys "{ESC}"
     }
 
 }
