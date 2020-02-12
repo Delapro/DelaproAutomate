@@ -69,12 +69,27 @@ Function Copy-Screen {
     $path
 }
 
+Function Save-ActiveWindow {
+    [CmdletBinding()]
+    Param(
+        [String]$Path=((New-TemporaryFile).Replace('.tmp', '.png'))
+    )
+
+    Send-Key -Keys "%{PrtSc}"
+    Start-Sleep -Milliseconds 200
+
+    $bitmap = [Windows.Forms.Clipboard]::GetImage()
+    $bitmap.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
+
+    $path
+}
+
 Function Exit-AcrobatReader {
 
     $reader = "AcroRd32"
 
     Start-Sleep -Milliseconds 200
-    
+
     If ($p=Get-Process -Name $reader) {
         $p | Stop-Process -Force
     }

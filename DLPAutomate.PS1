@@ -1,7 +1,14 @@
 # Zum Testen, mögliche Szenarien 
 
+# Erweiterungsideen
+# mit PSDBF kombinieren, zum Abfragen von Zuständen
+# DLP_MAIN.INI auslesen um auf bestimmte Einstellungen reagieren zu können
+
 # Zuerst müssen benötigte Assembly geladen werden
 Initialize-Automation
+
+# zum Aufzeichnen von Bildern
+Save-ActiveWindow
 
 # Kunde anlegen
 Enter-Kunde
