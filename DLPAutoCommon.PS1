@@ -58,9 +58,9 @@ Function Copy-Screen {
         [String]$path=(New-TemporaryFile)
     )
 
-    $bounds = [Drawing.Rectangle]::FromLTRB($X, $Y, $Width, $Height)
+    $bounds = [System.Drawing.Rectangle]::FromLTRB($X, $Y, $Width, $Height)
     $bmp = New-Object Drawing.Bitmap $bounds.width, $bounds.height
-    $graphics = [Drawing.Graphics]::FromImage($bmp)
+    $graphics = [System.Drawing.Graphics]::FromImage($bmp)
     $graphics.CopyFromScreen($bounds.Location.X, $bounds.Location.Y, 0, 0, $bound.Size)
     $bmp.Save($path)
     $graphics.Dispose()
@@ -72,10 +72,11 @@ Function Copy-Screen {
 Function Save-ActiveWindow {
     [CmdletBinding()]
     Param(
-        [String]$Path=((New-TemporaryFile).Fullname.Replace('.tmp', '.png'))
+        [String]$Path=((New-TemporaryFile).Fullname.Replace('.tmp', '.png')),
+        [String]$App='Delapro'
     )
 
-    Select-App -App "Delapro"
+    Select-App -App $App
     Send-Key -Keys "%{PrtSc}"
     Start-Sleep -Milliseconds 200
 
