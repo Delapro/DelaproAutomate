@@ -72,7 +72,7 @@ Function Copy-Screen {
 Function Save-ActiveWindow {
     [CmdletBinding()]
     Param(
-        [String]$Path=((New-TemporaryFile).Replace('.tmp', '.png'))
+        [String]$Path=((New-TemporaryFile).Fullname.Replace('.tmp', '.png'))
     )
 
     Send-Key -Keys "%{PrtSc}"
