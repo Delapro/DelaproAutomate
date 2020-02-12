@@ -11,8 +11,10 @@ Initialize-Automation
 Save-ActiveWindow
 
 # Kunde anlegen
+$s= Out-Speech -Text "Kundenverwaltung aufrufen und neuen Kunden anlegen." -Async
 Enter-Kunde
 New-Kunde
+Wait-Speech $s
 Exit-Kunde
 
 # Techniker anlegen

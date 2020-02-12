@@ -1,12 +1,14 @@
 # DLPAutoCommon.PS1
 
 # benötigt .Net Framework 4.8
+# TODO: auf PS7 testen
 
 Function Initialize-Automation {
 
     Add-Type -AssemblyName System.Windows.Forms
     [void] [System.Reflection.Assembly]::LoadWithPartialName("'Microsoft.VisualBasic")
     [void] [System.Reflection.Assembly]::LoadWithPartialName("'System.Drawing")
+    Add-Type -AssemblyName System.Speech
 
 }
 
@@ -94,5 +96,33 @@ Function Exit-AcrobatReader {
 
     If ($p=Get-Process -Name $reader) {
         $p | Stop-Process -Force
+    }
+}
+
+Function Out-Speech {
+    [CmdletBinding()]
+    Param(
+        [String]$Text,
+        [Switch]$Asnyc
+    )
+
+    $voice = New-Object System.Speech.Synthesis.SpeechSynthesizer
+    If ($Asnyc) {
+        $ret = $voice.SpeakAsync($Text)
+        $ret
+    } else {
+        $voice.Speak($Text)
+    }
+
+}
+
+Function Wait-Speech {
+    [CmdletBinding()]
+    Param(
+        [System.Speech.Synthesis.Prompt]$SpeechRet
+    )
+
+    While (-not ($SpeechRet.IsCompleted)) {
+        Start-Sleep -Milliseconds 100
     }
 }
