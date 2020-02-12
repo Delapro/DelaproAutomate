@@ -75,6 +75,7 @@ Function Save-ActiveWindow {
         [String]$Path=((New-TemporaryFile).Fullname.Replace('.tmp', '.png'))
     )
 
+    Select-App -App "Delapro"
     Send-Key -Keys "%{PrtSc}"
     Start-Sleep -Milliseconds 200
 
