@@ -3,6 +3,7 @@
 # Erweiterungsideen
 # mit PSDBF kombinieren, zum Abfragen von Zuständen
 # DLP_MAIN.INI auslesen um auf bestimmte Einstellungen reagieren zu können
+# TODO: Durchgriffe von AufPos->Jumbos, Kunde->Aufträge, AufPos->Artikel usw.
 
 # Zuerst müssen benötigte Assembly geladen werden
 Initialize-Automation
@@ -41,3 +42,8 @@ Exit-Auftrag
 Enter-Material
 New-Material
 Exit-Material
+
+# Jumbo anlegen
+Enter-Jumbo
+New-Jumbo
+Exit-Jumbo
