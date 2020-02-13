@@ -5,7 +5,7 @@ Function New-Jumbo {
     Param(
         [String]$Name='14er',
         [String]$Bemerkung='Kunststoffprothese 14er',
-        [DateTime]$SofortEinspielen='J',
+        [String]$SofortEinspielen='J',
         [String]$Abrechnungsart='L'
     )
     
