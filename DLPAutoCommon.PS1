@@ -43,11 +43,18 @@ $wshell
 Function Send-Key {
     [CmdletBinding()]
     Param(
-        [String]$Keys
+        [String]$Keys,
+        [ValidateSet('WinKey')]
+        [String]$SpecialKey
     )
 
+    Switch ($SpecialKey) {
+        'Win' {$SpecialKey='^{ESC}'}
+    }
     # https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.sendkeys?view=netframework-4.7.2
-    [System.Windows.Forms.SendKeys]::SendWait($Keys)
+    If ($Keys) {
+        [System.Windows.Forms.SendKeys]::SendWait($Keys)
+    }
 }
 
 Function Copy-Screen {

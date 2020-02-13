@@ -47,3 +47,8 @@ Exit-Material
 Enter-Jumbo
 New-Jumbo
 Exit-Jumbo
+
+
+# Sonstiges
+# Windows-Taste drücken, um Startmenü zu öffnen
+Send-Key -SpecialKey Win
