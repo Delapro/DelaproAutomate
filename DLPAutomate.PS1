@@ -52,3 +52,9 @@ Exit-Jumbo
 # Sonstiges
 # Windows-Taste drücken, um Startmenü zu öffnen
 Send-Key -SpecialKey Win
+
+# zum Einblenden von Tastendrücken bei Aufnahmen kann man Carnac verwenden
+# https://github.com/Code52/carnac
+# alternative KeyPress OSD
+# unter Mac MousePose
+# siehe auch: https://superuser.com/questions/104421/windows-utility-to-render-which-key-i-am-pressing-on-screen
