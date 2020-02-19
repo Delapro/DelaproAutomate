@@ -11,11 +11,16 @@ Initialize-Automation
 # zum Aufzeichnen von Bildern
 Save-ActiveWindow
 
-# Kunde anlegen
+# Kunde anlegen mit Sprachausgabe
 $s= Out-Speech -Text "Kundenverwaltung aufrufen und neuen Kunden anlegen." -Async
 Enter-Kunde
 New-Kunde
 Wait-Speech $s
+Exit-Kunde
+
+# Kunde anlegen 
+Enter-Kunde
+New-Kunde
 Exit-Kunde
 
 # Techniker anlegen
