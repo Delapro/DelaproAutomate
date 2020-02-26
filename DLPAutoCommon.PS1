@@ -12,12 +12,27 @@ Function Initialize-Automation {
 
 }
 
+# Funktioniert nicht bei Consolen-Fenstern!!!
 Function Select-App {
     [CmdletBinding()]
     Param(
-        [String]$App
-    )
-    [Microsoft.VisualBasic.Interaction]::AppActivate($App)
+        [Parameter(ParameterSetName='title', Position=0)]
+        [ValidateNotNullOrEmpty()]
+        [String]$App,
+		[Parameter(ParameterSetName='process', Position=0)]
+        [ValidateNotNullOrEmpty()]
+        [int]$ProcessID
+	)
+
+	switch -exact ($PSCmdlet.ParameterSetName) {
+	    { @('title') -contains $_} { 
+                        [Microsoft.VisualBasic.Interaction]::AppActivate($App)
+					               }
+        { @('process') -contains $_} { 
+                        [Microsoft.VisualBasic.Interaction]::AppActivate($ProcessID)
+                                     }
+                
+    }
 
     <#
     $wshell = New-Object -ComObject WScript.Shell    
