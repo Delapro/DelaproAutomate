@@ -58,6 +58,27 @@ Exit-Jumbo
 # Windows-Taste drücken, um Startmenü zu öffnen
 Send-Key -SpecialKey Win
 
+
+# Möglichkeit DBU32 Fernzusteuern
+# wichtig: DBU32 hat keinen eigenen Fenstertitel! Deshalb wird hier das Powershellfenster verwendet
+# hier als Beispiel soll ein Replace stattfinden, betreffende DBF muss schon in DBU32 geöffnet sein
+# das Replace-Menü wird mittels F6 geöffnet, da aber r auch Run auslösen könnte wird zunächst mit
+# mehreren "Pfeil nach oben"-Tasten den ersten Menüpunkt angefahren um von da aus gezielt Replace
+# mittels r auswählen zu können
+# in diesem Beispiel muss AUFTRAG.DBF bereits Selektiert sein!
+Select-App -App 'Windows Powershell'
+Send-Key -Keys '{F6}{UP}{UP}{UP}{UP}{UP}{UP}r{Enter}'
+$SelectField = 'g'  # erstes Feld mit G = Gedrucktdatumfeld bei AUFTRAG.DBF
+$ReplaceWith = 'Datum' # 126 Zeichen max!
+$ReplaceFor = 'AuftragArt == "K" .AND. Gedruckt == CTOD{(}"26.02.2020"{)}' # ( und ) sind Sonderzeichen!
+Send-Key -Keys "$SelectField"
+Start-Sleep -Milliseconds 200   # Verschnaufpausen müssen sein, sonst verschluckt sich DBU32
+Send-Key -Keys "{ENTER}{ENTER}"
+Start-Sleep -Milliseconds 200
+Send-Key -Keys "$ReplaceWith"
+Start-Sleep -Milliseconds 200
+Send-Key -Keys "{DOWN}{ENTER}$ReplaceFor"
+
 # zum Einblenden von Tastendrücken bei Aufnahmen kann man Carnac verwenden
 # https://github.com/Code52/carnac
 # alternative KeyPress OSD
