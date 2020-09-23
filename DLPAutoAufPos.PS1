@@ -3,21 +3,21 @@
 Function New-AufPos {
     [CmdletBinding()]
     Param(
-        [String]$AufPosBelBebNr='10',
-        [String]$AufPosMenge='1',
-        [String]$AufPosTechniker='1'
+        [String]$BelBebNr='10',
+        [String]$Menge='1',
+        [String]$Techniker='1'
     )
     
     Select-App -App "Delapro"
     Send-Key -Keys ' {LEFT}'
     Start-Sleep -Milliseconds 200
-    Send-Key -Keys "$AufPosBelBebNr{PGDN}{RIGHT}"
+    Send-Key -Keys "$BelBebNr{PGDN}{RIGHT}"
     Start-Sleep -Milliseconds 200
-    Send-Key -Keys "$AufPosMenge"
+    Send-Key -Keys "$Menge"
     Start-Sleep -Milliseconds 200
     Send-Key -Keys "{ENTER}"
     Start-Sleep -Milliseconds 200
-    Send-Key -Keys "$AufPosTechniker{PGDN}"
+    Send-Key -Keys "$Techniker{PGDN}"
     Start-Sleep -Milliseconds 200
     Send-Key -Keys "{DOWN}"
 
