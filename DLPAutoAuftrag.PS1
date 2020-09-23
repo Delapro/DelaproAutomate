@@ -48,6 +48,8 @@ Function Out-Auftrag {
         Send-Key -Keys "{F6}"
     }
 
+    Start-Sleep -Milliseconds 200
+
     # Druckertreiberauswahl
     Switch ($Treiber) {
         'Win'       {Send-Key -Keys "w"}
@@ -55,6 +57,7 @@ Function Out-Auftrag {
         'E-Mail'    {Send-Key -Keys "e"}
     }
     Send-Key -Keys "{DOWN}"
+    Start-Sleep -Milliseconds 200
 
     # TODO: Schachtauswahl
 
@@ -67,7 +70,8 @@ Function Out-Auftrag {
         # TODO: Rest
     }
     Send-Key -Keys "{DOWN}"
-
+    Start-Sleep -Milliseconds 200
+    
     # Auslösen
     Send-Key -Keys "{PGDN}"
 }
