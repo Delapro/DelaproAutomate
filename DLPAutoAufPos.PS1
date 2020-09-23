@@ -32,6 +32,7 @@ Function Exit-AufPos {
     Select-App -App "Delapro"
     If ($Save) {
         Send-Key -Keys "{F10}"
+        Start-Sleep -Milliseconds 200
     } else {
         Send-Key -Keys "{ESC}"
     }
