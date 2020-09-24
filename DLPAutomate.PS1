@@ -39,6 +39,7 @@ New-AufPos -BelBebNr 9330
 Exit-AufPos -Save
 Out-Auftrag -IgnoreCall -Treiber Ansicht -Formular Kostenvoranschlag
 Start-Sleep -Milliseconds 200
+Wait-AcrobatReader
 Exit-AcrobatReader
 Start-Sleep -Milliseconds 200
 Exit-Auftrag
