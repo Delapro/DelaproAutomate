@@ -17,4 +17,4 @@ die Automatisierungsskripte automatisch nachladen. Danach stehen einem die Funkt
 >
 > Die Scripts werden ausschließlich unter Windows 10 1909 und neuer getestet.
 
-Wie die Funktionen konkret angewendet werden kann man in der [DLPAutomate.PS1](DLPAutomate.PS1) sehen
+Wie die Funktionen konkret angewendet werden kann man in der [DLPAutomate.PS1](DLPAutomate.PS1) sehen.
