@@ -8,22 +8,22 @@ Function New-Techniker {
         [String]$TecName='Testtechniker'    
     )
     
-    Select-App -App "Delapro"
-    Send-Key -Keys "{F2}{ENTER}{ENTER}$TecAnrede{ENTER}{ENTER}$TecVorname{ENTER}$TecName{PGDN}{PGDN}"
-
+    If (Select-App -App "Delapro") {
+        Send-Key -Keys "{F2}{ENTER}{ENTER}$TecAnrede{ENTER}{ENTER}$TecVorname{ENTER}$TecName{PGDN}{PGDN}"
+    }
 }
 
 Function Enter-Techniker {
 
-    Select-App -App "Delapro"
-    # Startpunkt muss das Hauptmenü sein!
-    Send-Key -Keys "{F7}"
-
+    If (Select-App -App "Delapro") {
+        # Startpunkt muss das Hauptmenü sein!
+        Send-Key -Keys "{F7}"
+    }
 }
 
 Function Exit-Techniker {
 
-    Select-App -App "Delapro"
-    Send-Key -Keys "{ESC}"
-
+    If (Select-App -App "Delapro") {
+        Send-Key -Keys "{ESC}"
+    }
 }

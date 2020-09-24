@@ -9,24 +9,25 @@ Function New-Jumbo {
         [String]$Abrechnungsart='L'
     )
     
-    Select-App -App "Delapro"
-    Send-Key -Keys "{F2}$Name{ENTER}$Bemerkung{ENTER}$SofortEinspielen{ENTER}$Abrechnungsart{ENTER}"
+    If (Select-App -App "Delapro") {
+        Send-Key -Keys "{F2}$Name{ENTER}$Bemerkung{ENTER}$SofortEinspielen{ENTER}$Abrechnungsart{ENTER}"
 
-    # jetzt sollte an JumboPos übergeben werden, wir kürzen ab!
-    Send-Key -Keys "{F10}" # Speichern
+        # jetzt sollte an JumboPos übergeben werden, wir kürzen ab!
+        Send-Key -Keys "{F10}" # Speichern
+    }
 }
 
 Function Enter-Jumbo {
 
-    Select-App -App "Delapro"
-    # Startpunkt muss das Hauptmenü sein!
-    Send-Key -Keys "{F5}"
-
+    If (Select-App -App "Delapro") {
+        # Startpunkt muss das Hauptmenü sein!
+        Send-Key -Keys "{F5}"
+    }
 }
 
 Function Exit-Jumbo {
 
-    Select-App -App "Delapro"
-    Send-Key -Keys "{ESC}"
-
+    If (Select-App -App "Delapro") {
+        Send-Key -Keys "{ESC}"
+    }
 }

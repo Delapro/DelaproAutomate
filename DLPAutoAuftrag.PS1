@@ -13,24 +13,25 @@ Function New-Auftrag {
         [String]$AufArtDerArbeit='Reparatur'
     )
     
-    Select-App -App "Delapro"
-    Send-Key -Keys "{F2}$AufXMLNummer{ENTER}$($AufDatum.ToShortDateString()){ENTER}$AufKunNummer{ENTER}{ENTER}{ENTER}{ENTER}{ENTER}$AufPatient{ENTER}$AufKrankenkasse{ENTER}$AufZahnfarbe{ENTER}$AufBeleg{ENTER}{ENTER}$AufArtDerArbeit{F4}"
+    If (Select-App -App "Delapro") {
+        Send-Key -Keys "{F2}$AufXMLNummer{ENTER}$($AufDatum.ToShortDateString()){ENTER}$AufKunNummer{ENTER}{ENTER}{ENTER}{ENTER}{ENTER}$AufPatient{ENTER}$AufKrankenkasse{ENTER}$AufZahnfarbe{ENTER}$AufBeleg{ENTER}{ENTER}$AufArtDerArbeit{F4}"
+    }
 
 }
 
 Function Enter-Auftrag {
 
-    Select-App -App "Delapro"
-    # Startpunkt muss das Hauptmenü sein!
-    Send-Key -Keys "{F3}"
-
+    If (Select-App -App "Delapro") {
+        # Startpunkt muss das Hauptmenü sein!
+        Send-Key -Keys "{F3}"
+    }
 }
 
 Function Exit-Auftrag {
 
-    Select-App -App "Delapro"
-    Send-Key -Keys "{ESC}"
-
+    If (Select-App -App "Delapro") {
+        Send-Key -Keys "{ESC}"
+    }
 }
 
 Function Out-Auftrag {
@@ -43,35 +44,36 @@ Function Out-Auftrag {
         [String]$Formular
     )
 
-    Select-App -App "Delapro"
-    If (-Not ($IgnoreCall)) {
-        Send-Key -Keys "{F6}"
+    If (Select-App -App "Delapro") {
+        If (-Not ($IgnoreCall)) {
+            Send-Key -Keys "{F6}"
+        }
+
+        Start-Sleep -Milliseconds 200
+
+        # Druckertreiberauswahl
+        Switch ($Treiber) {
+            'Win'       {Send-Key -Keys "w"}
+            'Ansicht'   {Send-Key -Keys "a"}
+            'E-Mail'    {Send-Key -Keys "e"}
+        }
+        Send-Key -Keys "{DOWN}"
+        Start-Sleep -Milliseconds 200
+
+        # TODO: Schachtauswahl
+
+        # Formularauswahl
+        Switch ($Formular) {
+            'Rechnung'  {Send-Key -Keys 'r'}
+            'Gutschrift'  {Send-Key -Keys 'g'}
+            'Kostenvoranschlag'  {Send-Key -Keys 'k'}
+            'Technikerlaufzettel'  {Send-Key -Keys 't'}
+            # TODO: Rest
+        }
+        Send-Key -Keys "{DOWN}"
+        Start-Sleep -Milliseconds 200
+
+        # Auslösen
+        Send-Key -Keys "{PGDN}"
     }
-
-    Start-Sleep -Milliseconds 200
-
-    # Druckertreiberauswahl
-    Switch ($Treiber) {
-        'Win'       {Send-Key -Keys "w"}
-        'Ansicht'   {Send-Key -Keys "a"}
-        'E-Mail'    {Send-Key -Keys "e"}
-    }
-    Send-Key -Keys "{DOWN}"
-    Start-Sleep -Milliseconds 200
-
-    # TODO: Schachtauswahl
-
-    # Formularauswahl
-    Switch ($Formular) {
-        'Rechnung'  {Send-Key -Keys 'r'}
-        'Gutschrift'  {Send-Key -Keys 'g'}
-        'Kostenvoranschlag'  {Send-Key -Keys 'k'}
-        'Technikerlaufzettel'  {Send-Key -Keys 't'}
-        # TODO: Rest
-    }
-    Send-Key -Keys "{DOWN}"
-    Start-Sleep -Milliseconds 200
-    
-    # Auslösen
-    Send-Key -Keys "{PGDN}"
 }

@@ -10,18 +10,19 @@ Function New-Artikel {
         [Decimal]$Preis
     )
     
-    Select-App -App "Delapro"
-    Send-Key -Keys "{F2}"  # Anlegen
-    
-    # Anlegenmaske ausfüllen
-    Send-Key "$BelBebNr{ENTER}"
-    Send-Key "$BebArt{ENTER}"
-    Send-Key "$Artikelgruppe{ENTER}"
-    Send-Key "$Text{ENTER}"
-    Send-Key "$Preis{ENTER}"
-    
-    # Speichern
-    Send-Key "{F10}"
+    If (Select-App -App "Delapro") {
+        Send-Key -Keys "{F2}"  # Anlegen
+        
+        # Anlegenmaske ausfüllen
+        Send-Key "$BelBebNr{ENTER}"
+        Send-Key "$BebArt{ENTER}"
+        Send-Key "$Artikelgruppe{ENTER}"
+        Send-Key "$Text{ENTER}"
+        Send-Key "$Preis{ENTER}"
+        
+        # Speichern
+        Send-Key "{F10}"
+    }
 }
 
 Function New-BEB7 {
@@ -67,15 +68,15 @@ Function New-Material {
 
 Function Enter-Artikel {
 
-    Select-App -App "Delapro"
-    # Startpunkt muss das Hauptmenü sein!
-    Send-Key -Keys "{F4}"  # Leistungs/Materialverwaltung
-
+    If (Select-App -App "Delapro") {
+        # Startpunkt muss das Hauptmenü sein!
+        Send-Key -Keys "{F4}"  # Leistungs/Materialverwaltung
+    }
 }
 
 Function Exit-Artikel {
 
-    Select-App -App "Delapro"
-    Send-Key -Keys "{ESC}"
-
+    If (Select-App -App "Delapro") {
+        Send-Key -Keys "{ESC}"
+    }
 }
