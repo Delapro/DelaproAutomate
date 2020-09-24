@@ -20,7 +20,8 @@ Function New-AufPos {
     Send-Key -Keys "$Techniker{PGDN}"
     Start-Sleep -Milliseconds 200
     Send-Key -Keys "{DOWN}"
-
+    Start-Sleep -Milliseconds 200
+ 
 }
 
 Function Exit-AufPos {
@@ -32,9 +33,10 @@ Function Exit-AufPos {
     Select-App -App "Delapro"
     If ($Save) {
         Send-Key -Keys "{F10}"
-        Start-Sleep -Milliseconds 200
+        Start-Sleep -Milliseconds 500
     } else {
         Send-Key -Keys "{ESC}"
+        Start-Sleep -Milliseconds 200
     }
 
 }
