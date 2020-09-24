@@ -131,6 +131,20 @@ Function Exit-AcrobatReader {
     }
 }
 
+Function Wait-AcrobatReader {
+    [CmdletBinding()]
+    Param(
+        [timespan]$TimeOut=[timespan]::FromSeconds(10)
+    )
+
+    $reader = "AcroRd32"
+    $Starttime = Get-Date
+    While ($null -eq (Get-Process -Name $reader -EA SilentlyContinue) -and
+           ((Get-Date)-$StartTime -le $TimeOut)) {
+        Start-Sleep -Milliseconds 200
+    }
+}
+
 Function Out-Speech {
     [CmdletBinding()]
     Param(
