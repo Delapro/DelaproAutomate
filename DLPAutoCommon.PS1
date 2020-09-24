@@ -25,11 +25,21 @@ Function Select-App {
 	)
 
 	switch -exact ($PSCmdlet.ParameterSetName) {
-	    { @('title') -contains $_} { 
-                        [Microsoft.VisualBasic.Interaction]::AppActivate($App)
+	    { @('title') -contains $_} {
+                        If (Get-Process -Name $App) {
+                            [Microsoft.VisualBasic.Interaction]::AppActivate($App)
+                            $true
+                        } else {
+                            $false
+                        }
 					               }
         { @('process') -contains $_} { 
-                        [Microsoft.VisualBasic.Interaction]::AppActivate($ProcessID)
+                        If (Get-Process -Id $ProcessID) {
+                            [Microsoft.VisualBasic.Interaction]::AppActivate($ProcessID)
+                            $true
+                        } else {
+                            $false
+                        }
                                      }
                 
     }
