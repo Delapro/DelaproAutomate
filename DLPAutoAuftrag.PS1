@@ -47,6 +47,7 @@ Function Out-Auftrag {
     If (Select-App -App "Delapro") {
         If (-Not ($IgnoreCall)) {
             Send-Key -Keys "{F6}"
+            Start-Sleep -Milliseconds 200
         }
 
         Start-Sleep -Milliseconds 200
