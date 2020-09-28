@@ -40,6 +40,7 @@ Exit-AufPos -Save
 Out-Auftrag -IgnoreCall -Treiber Ansicht -Formular Kostenvoranschlag
 Start-Sleep -Milliseconds 200
 Wait-AcrobatReader
+Start-Sleep -Seconds 1
 Exit-AcrobatReader
 Start-Sleep -Milliseconds 200
 Exit-Auftrag
