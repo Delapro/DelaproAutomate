@@ -28,22 +28,46 @@ Enter-Techniker
 New-Techniker
 Exit-Techniker
 
-# Auftrag mit Positionen anlegen
-Enter-Auftrag
-New-Auftrag
-New-AufPos -BelBebNr 10
-New-AufPos -BelBebNr 51
-New-AufPos -BelBebNr 120
-New-AufPos -BelBebNr 1620
-New-AufPos -BelBebNr 9330
-Exit-AufPos -Save
-Out-Auftrag -IgnoreCall -Treiber Ansicht -Formular Kostenvoranschlag
-Start-Sleep -Milliseconds 200
-Wait-AcrobatReader
-Start-Sleep -Seconds 1
-Exit-AcrobatReader
-Start-Sleep -Milliseconds 200
-Exit-Auftrag
+# Auftrag mit Positionen anlegen und zum KV machen
+Function New-TestKV {
+    Enter-Auftrag
+    New-Auftrag
+    New-AufPos -BelBebNr 10
+    New-AufPos -BelBebNr 51
+    New-AufPos -BelBebNr 120
+    New-AufPos -BelBebNr 1620
+    New-AufPos -BelBebNr 9330
+    Exit-AufPos -Save
+    Out-Auftrag -IgnoreCall -Treiber Ansicht -Formular Kostenvoranschlag
+    Start-Sleep -Milliseconds 200
+    Wait-AcrobatReader
+    Start-Sleep -Seconds 1
+    Exit-AcrobatReader
+    Start-Sleep -Milliseconds 200
+    Exit-Auftrag
+}
+
+# Auftrag mit Positionen anlegen und zum KV machen
+Function New-TestRechnung {
+    Enter-Auftrag
+    New-Auftrag
+    New-AufPos -BelBebNr 10
+    New-AufPos -BelBebNr 51
+    New-AufPos -BelBebNr 120
+    New-AufPos -BelBebNr 1620
+    New-AufPos -BelBebNr 9330
+    Exit-AufPos -Save
+    Out-Auftrag -IgnoreCall -Treiber Ansicht -Formular Rechnung
+    Start-Sleep -Milliseconds 200
+    Wait-AcrobatReader
+    Start-Sleep -Seconds 1
+    Exit-AcrobatReader
+    Start-Sleep -Milliseconds 200
+    # XML-Datei-Export überspringen
+    Select-App 'Delapro'; Send-Key '{ESC'}
+    Start-Sleep -Milliseconds 200
+    Exit-Auftrag
+}
 
 # Material anlegen
 Enter-Material
