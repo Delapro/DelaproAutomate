@@ -47,7 +47,7 @@ Function New-TestKV {
     Exit-Auftrag
 }
 
-# Auftrag mit Positionen anlegen und zum KV machen
+# Auftrag mit Positionen anlegen und zur Rechnung machen
 Function New-TestRechnung {
     Enter-Auftrag
     New-Auftrag
@@ -64,7 +64,7 @@ Function New-TestRechnung {
     Exit-AcrobatReader
     Start-Sleep -Milliseconds 200
     # XML-Datei-Export überspringen
-    Select-App 'Delapro'; Send-Key '{ESC'}
+    Select-App 'Delapro'; Send-Key '{ESC}'
     Start-Sleep -Milliseconds 200
     Exit-Auftrag
 }
