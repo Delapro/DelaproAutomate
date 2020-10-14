@@ -88,6 +88,7 @@ Function Send-Key {
         If ($global:DlpAutoSendKeySleep) {
             Start-Sleep -Milliseconds $global:DlpAutoSendKeySleep
         }
+    }
 }
 
 Function Copy-Screen {
