@@ -28,6 +28,9 @@ Function Select-App {
 	    { @('title') -contains $_} {
                         If (Get-Process -Name $App) {
                             [Microsoft.VisualBasic.Interaction]::AppActivate($App)
+                            If ($global:DlpAutoSelectAppSleep) {
+                                Start-Sleep -Milliseconds $global:DlpAutoSelectAppSleep
+                            }
                             $true
                         } else {
                             $false
@@ -36,6 +39,9 @@ Function Select-App {
         { @('process') -contains $_} { 
                         If (Get-Process -Id $ProcessID) {
                             [Microsoft.VisualBasic.Interaction]::AppActivate($ProcessID)
+                            If ($global:DlpAutoSelectAppSleep) {
+                                Start-Sleep -Milliseconds $global:DlpAutoSelectAppSleep
+                            }
                             $true
                         } else {
                             $false
@@ -79,7 +85,9 @@ Function Send-Key {
     # https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.sendkeys?view=netframework-4.7.2
     If ($Keys) {
         [System.Windows.Forms.SendKeys]::SendWait($Keys)
-    }
+        If ($global:DlpAutoSendKeySleep) {
+            Start-Sleep -Milliseconds $global:DlpAutoSendKeySleep
+        }
 }
 
 Function Copy-Screen {

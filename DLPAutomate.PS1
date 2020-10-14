@@ -7,6 +7,13 @@
 
 # Zuerst müssen benötigte Assembly geladen werden
 Initialize-Automation
+# auf langsamen Rechnern werden die Tastendrücke aufgrund von 
+# Timingproblemen nicht immer korrekt verarbeitet, mittels
+# dieser Variablen kann man eine kleine Verschnaufpause nach dem
+# Selektieren bzw Aktivieren der App sowie nach dem Senden von Tasten
+# einbauen
+$global:DlpAutoSelectAppSleep = 100
+$global:DlpAutoSendKeySleep = 10
 
 # zum Aufzeichnen von Bildern
 Save-ActiveWindow
