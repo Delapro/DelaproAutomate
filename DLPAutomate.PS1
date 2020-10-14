@@ -15,6 +15,9 @@ Initialize-Automation
 $global:DlpAutoSelectAppSleep = 100
 $global:DlpAutoSendKeySleep = 10
 
+# Delapro aufrufen
+Start $env:PUBLIC\Desktop\Delapro.lnk
+
 # zum Aufzeichnen von Bildern
 Save-ActiveWindow
 
