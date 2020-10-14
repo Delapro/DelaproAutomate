@@ -70,9 +70,9 @@ Function New-TestRechnung {
 }
 
 # Material anlegen
-Enter-Material
+Enter-Artikel
 New-Material
-Exit-Material
+Exit-Artikel
 
 # Jumbo anlegen
 Enter-Jumbo
