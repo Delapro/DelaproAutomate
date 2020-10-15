@@ -16,7 +16,11 @@ $global:DlpAutoSelectAppSleep = 100
 $global:DlpAutoSendKeySleep = 10
 
 # Delapro aufrufen
-Start $env:PUBLIC\Desktop\Delapro.lnk
+Start-Process $env:PUBLIC\Desktop\Delapro.lnk
+Start-Sleep -Milliseconds 200
+Select-App 'Delapro'; Send-Key '{F2}'
+Wait-FileAvailable -File 'C:\Delapro\AufBeweg.CDX'
+Start-Sleep -Seconds 2
 
 # zum Aufzeichnen von Bildern
 Save-ActiveWindow

@@ -154,6 +154,21 @@ Function Wait-AcrobatReader {
     }
 }
 
+Function Wait-FileAvailable {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true,Position=0)]
+        [string]$File,
+        [timespan]$TimeOut=[timespan]::FromSeconds(120)
+    )
+
+    $Starttime = Get-Date
+    While (-Not (Test-Path $File) -and
+           ((Get-Date)-$StartTime -le $TimeOut)) {
+        Start-Sleep -Milliseconds 200
+    }
+}
+
 Function Out-Speech {
     [CmdletBinding()]
     Param(
