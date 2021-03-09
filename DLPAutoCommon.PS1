@@ -91,6 +91,54 @@ Function Send-Key {
     }
 }
 
+Function Set-MousePosition {
+    [CmdletBinding()]
+    Param(
+        [int]$XPos,
+        [int]$YPos
+    )
+
+    [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($XPos,$YPos)
+
+}
+
+Function Invoke-MouseEvent {
+    [CmdletBinding()]
+    Param(
+        [Validateset('LeftClick', 'RightClick', 'MiddleClick', 'Wheel')]
+        [string]$Button='LeftClick',
+        [int]$Delta
+    )
+
+    $signature=@' 
+    [DllImport("user32.dll",CharSet=CharSet.Auto, CallingConvention=CallingConvention.StdCall)]
+    public static extern void mouse_event(long dwFlags, long dx, long dy, long cButtons, long dwExtraInfo);
+'@ 
+
+    # https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.control.mousewheel?view=net-5.0
+    $SendMouseEvent = Add-Type -memberDefinition $signature -name "Win32MouseEventNew" -namespace Win32Functions -passThru 
+    if($Button -eq "LeftClick")
+    {
+        $SendMouseEvent::mouse_event(0x00000002, 0, 0, 0, 0);
+        $SendMouseEvent::mouse_event(0x00000004, 0, 0, 0, 0);
+    }
+    if($Button -eq "RightClick")
+    {
+        $SendMouseEvent::mouse_event(0x00000008, 0, 0, 0, 0);
+        $SendMouseEvent::mouse_event(0x00000010, 0, 0, 0, 0);
+    }
+    if($Button -eq "MiddleClick")
+    {
+        $SendMouseEvent::mouse_event(0x00000020, 0, 0, 0, 0);
+        $SendMouseEvent::mouse_event(0x00000040, 0, 0, 0, 0);
+    }
+    if($Button -eq "Wheel")
+    {
+        $SendMouseEvent::mouse_event(0x00000800, 0, 0, $delta, 0);
+    }
+
+}
+
 Function Copy-Screen {
     [CmdletBinding()]
     Param(
