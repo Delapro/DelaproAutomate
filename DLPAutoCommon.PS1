@@ -183,7 +183,7 @@ Function Exit-AcrobatReader {
 
     Start-Sleep -Milliseconds 200
 
-    If ($p=Get-Process -Name $reader) {
+    If ($p=Get-Process -Name $reader -ErrorAction SilentlyContinue) {
         $p | Stop-Process -Force
     }
 }
