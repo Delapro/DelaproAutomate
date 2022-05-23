@@ -179,7 +179,7 @@ Function Save-ActiveWindow {
 
 Function Exit-AcrobatReader {
 
-    $reader = "AcroRd32"
+    $reader = @('AcroRd32', 'Acrobat')
 
     Start-Sleep -Milliseconds 200
 
@@ -194,7 +194,7 @@ Function Wait-AcrobatReader {
         [timespan]$TimeOut=[timespan]::FromSeconds(10)
     )
 
-    $reader = "AcroRd32"
+    $reader = @('AcroRd32', 'Acrobat')
     $Starttime = Get-Date
     While ($null -eq (Get-Process -Name $reader -EA SilentlyContinue) -and
            ((Get-Date)-$StartTime -le $TimeOut)) {
