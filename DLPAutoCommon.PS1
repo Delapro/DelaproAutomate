@@ -221,11 +221,11 @@ Function Out-Speech {
     [CmdletBinding()]
     Param(
         [String]$Text,
-        [Switch]$Asnyc
+        [Switch]$Async
     )
 
     $voice = New-Object System.Speech.Synthesis.SpeechSynthesizer
-    If ($Asnyc) {
+    If ($Async) {
         $ret = $voice.SpeakAsync($Text)
         $ret
     } else {
