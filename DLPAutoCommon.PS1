@@ -244,3 +244,61 @@ Function Wait-Speech {
         Start-Sleep -Milliseconds 100
     }
 }
+
+Function TextBandEinblendung {
+        # auf Basis von https://learn-powershell.net/2012/10/14/powershell-and-wpf-writing-data-to-a-ui-from-a-different-runspace/
+
+    Add-Type -AssemblyName PresentationFramework
+    Add-Type -AssemblyName System.Windows.Forms
+
+    $syncHash = [hashtable]::Synchronized(@{})
+    $newRunspace =[runspacefactory]::CreateRunspace()
+    $newRunspace.ApartmentState = "STA"
+    $newRunspace.ThreadOptions = "ReuseThread"         
+    $newRunspace.Open()
+    $newRunspace.SessionStateProxy.SetVariable("syncHash",$syncHash)          
+    $psCmd = [PowerShell]::Create().AddScript({   
+        [xml]$xaml = @"
+    <Window x:Class="WpfApp5.MainWindow"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:local="clr-namespace:WpfApp5"
+            Title="MainWindow" Height="100" Width="800" WindowStyle="None"
+        Opacity="0.7" ResizeMode="NoResize" Background="Gray"
+            ShowInTaskbar="False" Topmost="True"
+        AllowsTransparency="True"  >
+        <Grid>
+        <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock x:Name="textblock"  Text="Hallo"  FontSize="20" Foreground="White" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="textblock2" Text="Hallo2" FontSize="20" Foreground="White" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+        </Grid>
+    </Window>
+"@
+    
+    $XAML.Window.RemoveAttribute("x:Class")
+        $reader=(New-Object System.Xml.XmlNodeReader $xaml)
+        $syncHash.Window=[Windows.Markup.XamlReader]::Load( $reader )
+        $syncHash.TextBlock = $syncHash.window.FindName("textblock")
+        $syncHash.Window.ShowDialog() | Out-Null
+        $syncHash.Error = $Error
+    })
+    $psCmd.Runspace = $newRunspace
+    $data = $psCmd.BeginInvoke()
+
+    Start-Sleep -milliseconds 200
+    $syncHash.Window.Dispatcher.invoke(
+        [action]{$syncHash.Window.Background='Black'},
+        "Normal"
+    )
+
+    Start-Sleep -milliseconds 500
+    $syncHash.Window.Dispatcher.invoke(
+        [action]{$syncHash.TextBlock.Text="Das ist ein längerer Text"},
+        "Normal"
+    )
+
+}
