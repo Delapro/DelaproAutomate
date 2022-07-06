@@ -44,8 +44,13 @@ Exit-Techniker
 
 # Auftrag mit Positionen anlegen und zum KV machen
 Function New-TestKV {
+    [CmdletBinding()]
+    Param(
+        [System.String]$Patient='Testpatient'
+    )
+
     Enter-Auftrag
-    New-Auftrag
+    New-Auftrag -AufPatient $Patient
     New-AufPos -BelBebNr 10
     New-AufPos -BelBebNr 51
     New-AufPos -BelBebNr 120
@@ -82,6 +87,9 @@ Function New-TestRechnung {
     Start-Sleep -Milliseconds 200
     Exit-Auftrag
 }
+
+# mehrere KVs anlegen
+1..5| % {New-TestKV -Patient "Testpatient$_"}
 
 # Material anlegen
 Enter-Artikel
