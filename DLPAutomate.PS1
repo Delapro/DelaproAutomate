@@ -68,8 +68,13 @@ Function New-TestKV {
 
 # Auftrag mit Positionen anlegen und zur Rechnung machen
 Function New-TestRechnung {
+    [CmdletBinding()]
+    Param(
+        [System.String]$Patient='Testpatient'
+    )
+
     Enter-Auftrag
-    New-Auftrag
+    New-Auftrag -AufPatient $Patient
     New-AufPos -BelBebNr 10
     New-AufPos -BelBebNr 51
     New-AufPos -BelBebNr 120
@@ -90,6 +95,9 @@ Function New-TestRechnung {
 
 # mehrere KVs anlegen
 1..5| % {New-TestKV -Patient "Testpatient$_"}
+
+# mehrere Rechnungen anlegen
+1..3| % {New-TestKV -Patient "Testpatient$_"}
 
 # Material anlegen
 Enter-Artikel
