@@ -15,6 +15,13 @@ Initialize-Automation
 $global:DlpAutoSelectAppSleep = 100
 $global:DlpAutoSendKeySleep = 10
 
+$Patienten=@( [PSCustomObject]@{Name='Müller';Vorname='Klaus'}
+             ,[PSCustomObject]@{Name='Wagner';Vorname='Michael'}
+             ,[PSCustomObject]@{Name='Lüdenscheidt';Vorname='Gabriele'}
+             ,[PSCustomObject]@{Name='Sonnenschein';Vorname='Klaus'}
+             ,[PSCustomObject]@{Name='Sonnenschein';Vorname='Jutta'}
+            )
+
 # Delapro aufrufen
 Start-Process $env:PUBLIC\Desktop\Delapro.lnk
 Start-Sleep -Milliseconds 200
@@ -94,10 +101,10 @@ Function New-TestRechnung {
 }
 
 # mehrere KVs anlegen
-1..5| % {New-TestKV -Patient "Testpatient$_"}
+$Patienten | % {New-TestKV -Patient "$($_.Name), $($_.Vorname)"}
 
 # mehrere Rechnungen anlegen
-1..3| % {New-TestKV -Patient "Testpatient$_"}
+$Patienten | % {New-TestRechnung -Patient "$($_.Name), $($_.Vorname)"}
 
 # Material anlegen
 Enter-Artikel
