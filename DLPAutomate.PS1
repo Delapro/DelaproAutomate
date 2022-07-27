@@ -15,11 +15,11 @@ Initialize-Automation
 $global:DlpAutoSelectAppSleep = 100
 $global:DlpAutoSendKeySleep = 10
 
-$Patienten=@( [PSCustomObject]@{Name='Müller';Vorname='Klaus'}
-             ,[PSCustomObject]@{Name='Wagner';Vorname='Michael'}
-             ,[PSCustomObject]@{Name='Lüdenscheidt';Vorname='Gabriele'}
-             ,[PSCustomObject]@{Name='Sonnenschein';Vorname='Klaus'}
-             ,[PSCustomObject]@{Name='Sonnenschein';Vorname='Jutta'}
+$Patienten=@( [PSCustomObject]@{Name='Müller';Vorname='Klaus';XMLAuftragsNr='3-6-9'}
+             ,[PSCustomObject]@{Name='Wagner';Vorname='Michael';XMLAuftragsNr='3-6-9'}
+             ,[PSCustomObject]@{Name='Lüdenscheidt';Vorname='Gabriele';XMLAuftragsNr='3-6-9'}
+             ,[PSCustomObject]@{Name='Sonnenschein';Vorname='Klaus';XMLAuftragsNr='3-6-9'}
+             ,[PSCustomObject]@{Name='Sonnenschein';Vorname='Jutta';XMLAuftragsNr='3-6-9'}
             )
 
 # Delapro aufrufen
@@ -77,11 +77,12 @@ Function New-TestKV {
 Function New-TestRechnung {
     [CmdletBinding()]
     Param(
-        [System.String]$Patient='Testpatient'
+         [System.String]$Patient='Testpatient'
+        ,[System.String]$XMLAuftragsnummer='3-6-9'
     )
 
     Enter-Auftrag
-    New-Auftrag -AufPatient $Patient
+    New-Auftrag -AufPatient $Patient -AufXMLNummer $XMLAuftragsnummer
     New-AufPos -BelBebNr 10
     New-AufPos -BelBebNr 51
     New-AufPos -BelBebNr 120
@@ -104,7 +105,7 @@ Function New-TestRechnung {
 $Patienten | % {New-TestKV -Patient "$($_.Name), $($_.Vorname)"}
 
 # mehrere Rechnungen anlegen
-$Patienten | % {New-TestRechnung -Patient "$($_.Name), $($_.Vorname)"}
+$Patienten | % {New-TestRechnung -Patient "$($_.Name), $($_.Vorname)" -XMLAuftragsnummer $_.XMLAuftragsnummer}
 
 # Material anlegen
 Enter-Artikel
