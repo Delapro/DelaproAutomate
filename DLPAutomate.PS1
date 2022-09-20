@@ -105,7 +105,7 @@ Function New-TestRechnung {
 $Patienten | % {New-TestKV -Patient "$($_.Name), $($_.Vorname)"}
 
 # mehrere Rechnungen anlegen
-$Patienten | % {New-TestRechnung -Patient "$($_.Name), $($_.Vorname)" -XMLAuftragsnummer $_.XMLAuftragsnummer}
+$Patienten | % {New-TestRechnung -Patient "$($_.Name), $($_.Vorname)" -XMLAuftragsnummer $_.XMLAuftragsnr}
 
 # Material anlegen
 Enter-Artikel
