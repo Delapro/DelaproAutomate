@@ -54,15 +54,16 @@ Function New-TestKV {
     [CmdletBinding()]
     Param(
         [System.String]$Patient='Testpatient'
+        ,[System.String[]]$Positionen=@('10','51','120','1620','9330')
     )
 
     Enter-Auftrag
     New-Auftrag -AufPatient $Patient
-    New-AufPos -BelBebNr 10
-    New-AufPos -BelBebNr 51
-    New-AufPos -BelBebNr 120
-    New-AufPos -BelBebNr 1620
-    New-AufPos -BelBebNr 9330
+    If ($Positionen -is [Array]) {
+        foreach ($Position in  $Positionen) {
+            New-AufPos -BelBebNr $Position
+        }
+    }
     Exit-AufPos -Save
     Out-Auftrag -IgnoreCall -Treiber Ansicht -Formular Kostenvoranschlag
     Start-Sleep -Milliseconds 200
