@@ -80,15 +80,16 @@ Function New-TestRechnung {
     Param(
          [System.String]$Patient='Testpatient'
         ,[System.String]$XMLAuftragsnummer='3-6-9'
+        ,[System.String[]]$Positionen=@('10','51','120','1620','9330')
     )
 
     Enter-Auftrag
     New-Auftrag -AufPatient $Patient -AufXMLNummer $XMLAuftragsnummer
-    New-AufPos -BelBebNr 10
-    New-AufPos -BelBebNr 51
-    New-AufPos -BelBebNr 120
-    New-AufPos -BelBebNr 1620
-    New-AufPos -BelBebNr 9330
+    If ($Positionen -is [Array]) {
+        foreach ($Position in  $Positionen) {
+            New-AufPos -BelBebNr $Position
+        }
+    }
     Exit-AufPos -Save
     Out-Auftrag -IgnoreCall -Treiber Ansicht -Formular Rechnung
     Start-Sleep -Milliseconds 200
