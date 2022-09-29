@@ -54,14 +54,22 @@ Function New-TestKV {
     [CmdletBinding()]
     Param(
         [System.String]$Patient='Testpatient'
-        ,[System.String[]]$Positionen=@('10','51','120','1620','9330')
+        # $Positionen muss Typfrei sein, oder es muss eine ordentliche Struktur her!
+        ,$Positionen=@(@('10', 2),'51','120',@('1620', 2),'9330')
     )
 
     Enter-Auftrag
     New-Auftrag -AufPatient $Patient
     If ($Positionen -is [Array]) {
         foreach ($Position in  $Positionen) {
-            New-AufPos -BelBebNr $Position
+            If ($Position -is [Array]) {
+                $LeisMat = $Position[0]
+                $Menge = $Position[1]
+            } else {
+                $LeisMat = $Position
+                $Menge = 1
+            }
+            New-AufPos -BelBebNr $LeisMat -Menge $Menge
         }
     }
     Exit-AufPos -Save
@@ -80,14 +88,22 @@ Function New-TestRechnung {
     Param(
          [System.String]$Patient='Testpatient'
         ,[System.String]$XMLAuftragsnummer='3-6-9'
-        ,[System.String[]]$Positionen=@('10','51','120','1620','9330')
+        # $Positionen muss Typfrei sein, oder es muss eine ordentliche Struktur her!
+        ,$Positionen=@(@('10', 2),'51','120',@('1620', 2),'9330')
     )
 
     Enter-Auftrag
     New-Auftrag -AufPatient $Patient -AufXMLNummer $XMLAuftragsnummer
     If ($Positionen -is [Array]) {
         foreach ($Position in  $Positionen) {
-            New-AufPos -BelBebNr $Position
+            If ($Position -is [Array]) {
+                $LeisMat = $Position[0]
+                $Menge = $Position[1]
+            } else {
+                $LeisMat = $Position
+                $Menge = 1
+            }
+            New-AufPos -BelBebNr $LeisMat -Menge $Menge
         }
     }
     Exit-AufPos -Save
