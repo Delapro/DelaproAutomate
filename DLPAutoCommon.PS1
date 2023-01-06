@@ -91,10 +91,11 @@ Function Send-Key {
     }
 }
 
-# Direkte Variante Tastendrücke zuzuordnen, z. B. auch Windows-Taste
+# Direkte Variante Tastendrücke zuzuordnen, z. B. auch Windows-Taste, 
+# Beispiel: Send-VirtKey -Key X oder Send-VirtKey -Key R
 Function Send-VirtKey {
 	[CmdletBinding()]
-	Param($Key)
+	Param($Key)	# $Key sollte Großbuchstabe sein
 
 	# siehe auch: https://github.com/asweigart/pyautogui,
 	#             https://github.com/learncodebygaming/pydirectinput
