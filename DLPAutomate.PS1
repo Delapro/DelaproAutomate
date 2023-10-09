@@ -60,8 +60,9 @@ Function New-TestKV {
 
     Enter-Auftrag
     New-Auftrag -AufPatient $Patient
+    $ExitAufPosParameter = @{}
     If ($Positionen -is [Array]) {
-        If ($Positionen.Length -gt 1) {
+        If ($Positionen.Length -ge 1) {
           $ExitAufPosParameter = @{RemoveBlankRow=$true}
         }
         foreach ($Position in  $Positionen) {
