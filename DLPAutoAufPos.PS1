@@ -27,11 +27,16 @@ Function New-AufPos {
 Function Exit-AufPos {
     [CmdletBinding()]
     Param(
-        [Switch]$Save
+        [Switch]$Save,
+        [Switch]$RemoveBlankRow
     )
 
     If (Select-App -App "Delapro") {
         If ($Save) {
+            If ($RemoveBlankRow) {
+                Send-Key -Keys "{UP}"
+                Start-Sleep -Milliseconds 200
+            }
             Send-Key -Keys "{F10}"
             Start-Sleep -Milliseconds 500
         } else {
