@@ -61,6 +61,9 @@ Function New-TestKV {
     Enter-Auftrag
     New-Auftrag -AufPatient $Patient
     If ($Positionen -is [Array]) {
+        If ($Positionen.Length -gt 1) {
+          $ExitAufPosParameter = @{RemoveBlankRow=$true}
+        }
         foreach ($Position in  $Positionen) {
             If ($Position -is [Array]) {
                 $LeisMat = $Position[0]
@@ -72,7 +75,7 @@ Function New-TestKV {
             New-AufPos -BelBebNr $LeisMat -Menge $Menge
         }
     }
-    Exit-AufPos -Save
+    Exit-AufPos -Save @ExitAufPosParameter
     Out-Auftrag -IgnoreCall -Treiber Ansicht -Formular Kostenvoranschlag
     Start-Sleep -Milliseconds 200
     Wait-AcrobatReader
