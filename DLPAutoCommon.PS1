@@ -10,6 +10,10 @@ Function Initialize-Automation {
     [void] [System.Reflection.Assembly]::LoadWithPartialName("'System.Drawing")
     Add-Type -AssemblyName System.Speech
 
+    $global:DlpAutoSelectAppSleep = 100
+    $global:DlpAutoSendKeySleep = 10
+    $global:DlpAutoApp = 'Delapro'
+
 }
 
 # Funktioniert nicht bei Consolen-Fenstern!!!
@@ -18,15 +22,15 @@ Function Select-App {
     Param(
         [Parameter(ParameterSetName='title', Position=0)]
         [ValidateNotNullOrEmpty()]
-        [String]$App,
-		[Parameter(ParameterSetName='process', Position=0)]
+        [String]$App=$global:DlpAutoApp,
+	[Parameter(ParameterSetName='process', Position=0)]
         [ValidateNotNullOrEmpty()]
         [int]$ProcessID
 	)
 
 	switch -exact ($PSCmdlet.ParameterSetName) {
 	    { @('title') -contains $_} {
-                        If (Get-Process -Name $App) {
+                        If (Get-Process|where MainWindowTitle -eq $App) {
                             [Microsoft.VisualBasic.Interaction]::AppActivate($App)
                             If ($global:DlpAutoSelectAppSleep) {
                                 Start-Sleep -Milliseconds $global:DlpAutoSelectAppSleep
