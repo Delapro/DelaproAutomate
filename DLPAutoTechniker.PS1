@@ -8,14 +8,14 @@ Function New-Techniker {
         [String]$TecName='Testtechniker'    
     )
     
-    If (Select-App) {
+    If (Select-App -App $global:DlpAutoApp) {
         Send-Key -Keys "{F2}{ENTER}{ENTER}$TecAnrede{ENTER}{ENTER}$TecVorname{ENTER}$TecName{PGDN}{PGDN}"
     }
 }
 
 Function Enter-Techniker {
 
-    If (Select-App) {
+    If (Select-App -App $global:DlpAutoApp) {
         # Startpunkt muss das Hauptmenü sein!
         Send-Key -Keys "{F7}"
     }
@@ -23,7 +23,7 @@ Function Enter-Techniker {
 
 Function Exit-Techniker {
 
-    If (Select-App) {
+    If (Select-App -App $global:DlpAutoApp) {
         Send-Key -Keys "{ESC}"
     }
 }
