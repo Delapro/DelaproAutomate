@@ -141,6 +141,16 @@ Enter-Jumbo
 New-Jumbo
 Exit-Jumbo
 
+# darauf achten, dass DLP_TIME läuft!
+# Tageszeitmodell anlegen
+Enter-Tageszeitmodell
+New-Tageszeitmodell -Nummer 1 -Beschreibung "TZM 1" -Zeitart Gleitzeit -Sollzeit '8:00'
+Exit-Tageszeitmodell
+# WochenZeitmodell anlegen
+New-Wochenzeitmodell -Nummer 1 -Beschreibung "WZM 1" -Montag 1 -Dienstag 1 -Mittwoch 1 -Donnerstag 1 -Freitag 1
+Enter-Wochenzeitmodell
+
+Exit-Wochenzeitmodell
 
 # Sonstiges
 # Windows-Taste drücken, um Startmenü zu öffnen
