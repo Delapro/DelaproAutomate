@@ -12,8 +12,10 @@ Initialize-Automation
 # dieser Variablen kann man eine kleine Verschnaufpause nach dem
 # Selektieren bzw Aktivieren der App sowie nach dem Senden von Tasten
 # einbauen
+# die folgenden Parameter werden auch von Initialize-Automation automatisch gesetzt:
 $global:DlpAutoSelectAppSleep = 100
 $global:DlpAutoSendKeySleep = 10
+$global:DlpAutoApp = 'Delapro'
 
 $Patienten=@( [PSCustomObject]@{Name='Müller';Vorname='Klaus';XMLAuftragsNr='3-6-9'}
              ,[PSCustomObject]@{Name='Wagner';Vorname='Michael';XMLAuftragsNr='3-6-9'}
