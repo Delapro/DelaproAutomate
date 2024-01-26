@@ -30,7 +30,7 @@ Function Select-App {
 
 	switch -exact ($PSCmdlet.ParameterSetName) {
 	    { @('title') -contains $_} {
-                        If (Get-Process -Name $App) {
+                        If (Get-Process|where MainWindowTitle -eq $App) {
                             [Microsoft.VisualBasic.Interaction]::AppActivate($App)
                             If ($global:DlpAutoSelectAppSleep) {
                                 Start-Sleep -Milliseconds $global:DlpAutoSelectAppSleep
