@@ -12,7 +12,7 @@ Function Install-OpenShot {
 	If (-not (Test-OpenShot)) {
         # Infos zur aktuellen Version: https://www.openshot.org/de/blog/categories/release/
         # https://github.com/OpenShot/openshot-qt/releases/download/v2.6.1/OpenShot-v2.6.1-x86_64.exe
-        $version = 'v2.6.1'
+        $version = 'v3.3.0'
 		$url = "https://github.com/OpenShot/openshot-qt/releases/download/$version/OpenShot-$version-x86_64.exe"
     	Write-Verbose "Download von $url"
 		Start-BitsTransfer $url -Destination $tempDirectory
