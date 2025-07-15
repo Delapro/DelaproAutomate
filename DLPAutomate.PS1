@@ -177,8 +177,10 @@ Send-Key -Keys "$ReplaceWith"
 Start-Sleep -Milliseconds 200
 Send-Key -Keys "{DOWN}{ENTER}$ReplaceFor"
 
-# zum Einblenden von Tastendrücken bei Aufnahmen kann man Carnac verwenden
+# zum Einblenden von Tastendrücken bei Aufnahmen (Screencast) kann man Carnac verwenden
+# das beste? https://github.com/mulaRahul/keyviz
 # https://github.com/Code52/carnac
 # alternative KeyPress OSD
+# oder https://github.com/AxDSan/KeyPose
 # unter Mac MousePose
 # siehe auch: https://superuser.com/questions/104421/windows-utility-to-render-which-key-i-am-pressing-on-screen
