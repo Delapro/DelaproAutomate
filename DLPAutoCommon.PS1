@@ -288,6 +288,27 @@ Function Save-ActiveWindow {
     $path
 }
 
+Function Save-DLPDocumentationWindow {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory)]
+        [String]$Path,
+        [String]$App=$global:DlpAutoApp,
+        [Int]$DelayMilliseconds=300
+    )
+
+    $Directory = Split-Path -Parent $Path
+    If ($Directory -and (-Not (Test-Path -LiteralPath $Directory -PathType Container))) {
+        New-Item -ItemType Directory -Path $Directory -Force | Out-Null
+    }
+
+    If ($DelayMilliseconds -gt 0) {
+        Start-Sleep -Milliseconds $DelayMilliseconds
+    }
+
+    Save-ActiveWindow -Path $Path -App $App
+}
+ 
 Function Exit-AcrobatReader {
 
     $reader = @('AcroRd32', 'Acrobat')
