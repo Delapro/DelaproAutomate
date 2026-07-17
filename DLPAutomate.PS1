@@ -2,7 +2,6 @@
 
 # Erweiterungsideen
 # mit PSDBF kombinieren, zum Abfragen von Zuständen
-# DLP_MAIN.INI auslesen um auf bestimmte Einstellungen reagieren zu können
 # TODO: Durchgriffe von AufPos->Jumbos, Kunde->Aufträge, AufPos->Artikel usw.
 
 # Zuerst müssen benötigte Assembly geladen werden
@@ -16,6 +15,7 @@ Initialize-Automation
 $global:DlpAutoSelectAppSleep = 100
 $global:DlpAutoSendKeySleep = 10
 $global:DlpAutoApp = 'Delapro'
+$global:DlpAutoMainIni = 'C:\Delapro\DLP_MAIN.INI'
 
 $Patienten=@( [PSCustomObject]@{Name='Müller';Vorname='Klaus';XMLAuftragsNr='3-6-9'}
              ,[PSCustomObject]@{Name='Wagner';Vorname='Michael';XMLAuftragsNr='3-6-9'}
@@ -41,9 +41,20 @@ New-Kunde
 Wait-Speech $s
 Exit-Kunde
 
-# Kunde anlegen 
+# Kunde mit fester Nummer anlegen und Behandler erfassen
+# Die Behandlerfunktionen stehen nur zur Verfügung, wenn in der
+# DLP_MAIN.INI unter [Modus] BehandlerModulAktiv=1 gesetzt ist.
 Enter-Kunde
-New-Kunde
+New-Kunde -KunNummer '001' -KunName 'Gemeinschaftspraxis'
+If (Test-DLPBehandlerModulAktiv) {
+    Enter-KundeBehandler
+    New-Behandler -BehNummer '001' -BehVorname 'Anna' -BehName 'Weber' -BehEMail 'anna.weber@example.invalid'
+    New-Behandler -BehNummer '002' -BehVorname 'Markus' -BehName 'Klein' -BehEMail 'markus.klein@example.invalid'
+    Exit-KundeBehandler
+    # Zurück aus den Kundendaten in die Kundenübersicht.
+    Exit-Kunde
+}
+# Kundenübersicht verlassen.
 Exit-Kunde
 
 # Techniker anlegen
@@ -94,12 +105,15 @@ Function New-TestRechnung {
     Param(
          [System.String]$Patient='Testpatient'
         ,[System.String]$XMLAuftragsnummer='3-6-9'
+        ,[System.String]$KunNummer='1'
+        ,[AllowEmptyString()]
+         [System.String]$BehandlerNummer=''
         # $Positionen muss Typfrei sein, oder es muss eine ordentliche Struktur her!
         ,$Positionen=@(@('10', 2),'51','120',@('1620', 2),'9330')
     )
 
     Enter-Auftrag
-    New-Auftrag -AufPatient $Patient -AufXMLNummer $XMLAuftragsnummer
+    New-Auftrag -AufPatient $Patient -AufXMLNummer $XMLAuftragsnummer -AufKunNummer $KunNummer -AufBehandlerNummer $BehandlerNummer
     If ($Positionen -is [Array]) {
         foreach ($Position in  $Positionen) {
             If ($Position -is [Array]) {
