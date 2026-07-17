@@ -7,7 +7,11 @@ Function New-Kunde {
         [String]$KunAnrede='Zahnarzt',
         [String]$KunTitel='Dr.',
         [String]$KunVorname='Vorname',
-        [String]$KunName='Tester'    
+        [String]$KunName='Tester',
+        [ScriptBlock]$OnFirstPage,
+        [ScriptBlock]$OnSecondPage,
+        [ScriptBlock]$OnThirdPage,
+        [ScriptBlock]$OnSaved
     )
     
     If (Select-App -App $global:DlpAutoApp) {
@@ -16,11 +20,49 @@ Function New-Kunde {
             $KundenNummerEingabe = "$KunNummer{ENTER}"
         }
 
-        Send-Key -Keys "{F2}$KundenNummerEingabe{ENTER}$KunAnrede{ENTER}$KunTitel{ENTER}$KunVorname{ENTER}$KunName{PGDN}"
-        # zweite Seite
+        # Vorhandene Tastensequenz zum Durchlaufen der ersten Kundenseite.
+        Send-Key -Keys "{F2}$KundenNummerEingabe{ENTER}$KunAnrede{ENTER}$KunTitel{ENTER}$KunVorname{ENTER}$KunName"
+        If ($OnSecondPage) {
+            Invoke-DLPStateAction -Action $OnFirstPage -Module 'Kunde' -State 'FirstPage' -Data @{
+                KundenNummer = $KunNummer
+                Name = $KunName
+                Vorname = $KunVorname
+            }
+        }
         Send-Key -Keys "{PGDN}"
-        # dritte Seite
+        Start-Sleep -Milliseconds 100
+
+        If ($OnSecondPage) {
+            Invoke-DLPStateAction -Action $OnSecondPage -Module 'Kunde' -State 'SecondPage' -Data @{
+            KundenNummer = $KunNummer
+            Name = $KunName
+            Vorname = $KunVorname
+        }
         Send-Key -Keys "{PGDN}"
+        Start-Sleep -Milliseconds 100
+
+        If ($OnThirdPage) {
+            Invoke-DLPStateAction -Action $OnThirdPage -Module 'Kunde' -State 'ThirdPage' -Data @{
+                KundenNummer = $KunNummer
+                Name = $KunName
+                Vorname = $KunVorname
+            }
+        }
+        Send-Key -Keys "{F10}"
+        # Die zweite Seite abschließen, damit der Kunde dauerhaft angelegt ist.
+        Send-Key -Keys "{F10}"
+        Start-Sleep -Milliseconds 100
+        Send-Key -Keys "{F10}"
+        Start-Sleep -Milliseconds 100
+
+        If ($OnSaved) {
+            Invoke-DLPStateAction -Action $OnSaved -Module 'Kunde' -State 'Saved' -Data @{
+                KundenNummer = $KunNummer
+                Name = $KunName
+                Vorname = $KunVorname
+            }
+        }
+
     }
 }
 
@@ -47,6 +89,8 @@ Function Exit-KundeBehandler {
 
     If (Select-App -App $global:DlpAutoApp) {
         # Zurück aus der Behandlerverwaltung in die Kundendaten.
+        # Hier darf F10 nicht verwendet werden, da es in der Verwaltung
+        # das Listenmenü öffnet.
         Send-Key -Keys "{ESC}"
     }
 }
@@ -60,8 +104,11 @@ Function Enter-Kunde {
 }
 
 Function Exit-Kunde {
+    [CmdletBinding()]
+    Param(
+        [Switch]$Save
+    )
 
-    If (Select-App -App $global:DlpAutoApp) {
-        Send-Key -Keys "{ESC}"
-    }
+    # In der Kundenübersicht öffnet F10 das Listenmenü.
+    Exit-DLPInputMask -Save:$Save
 }
