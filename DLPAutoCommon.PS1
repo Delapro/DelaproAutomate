@@ -13,9 +13,65 @@ Function Initialize-Automation {
     $global:DlpAutoSelectAppSleep = 100
     $global:DlpAutoSendKeySleep = 10
     $global:DlpAutoApp = 'Delapro'
+    $global:DlpAutoMainIni = 'C:\Delapro\DLP_MAIN.INI'
 
 }
 
+# Liest einen Wert aus der DLP_MAIN.INI. Die Funktion ist bewusst einfach
+# gehalten, damit keine zusätzlichen Module oder COM-Objekte benötigt werden.
+Function Get-DLPMainIniValue {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory)]
+        [String]$Section,
+        [Parameter(Mandatory)]
+        [String]$Key,
+        [String]$DefaultValue,
+        [String]$IniPath=$global:DlpAutoMainIni
+    )
+
+    If (-Not ($IniPath)) {
+        $IniPath = 'C:\Delapro\DLP_MAIN.INI'
+    }
+
+    If (-Not (Test-Path -LiteralPath $IniPath -PathType Leaf)) {
+        Write-Verbose "DLP_MAIN.INI nicht gefunden: $IniPath"
+        Return $DefaultValue
+    }
+
+    $CurrentSection = ''
+    foreach ($Line in (Get-Content -LiteralPath $IniPath -ErrorAction Stop)) {
+        $TrimmedLine = $Line.Trim()
+
+        If ((-Not ($TrimmedLine)) -or $TrimmedLine.StartsWith(';') -or $TrimmedLine.StartsWith('#')) {
+            Continue
+        }
+
+        If ($TrimmedLine -match '^\[(?<Section>[^\]]+)\]$') {
+            $CurrentSection = $Matches.Section.Trim()
+            Continue
+        }
+
+        If (($CurrentSection -ieq $Section) -and ($TrimmedLine -match '^(?<Key>[^=]+?)\s*=\s*(?<Value>.*)$')) {
+            If ($Matches.Key.Trim() -ieq $Key) {
+                Return $Matches.Value.Trim().Trim('"')
+            }
+        }
+    }
+
+    $DefaultValue
+}
+
+# Prüft den Schalter [Modus] BehandlerModulAktiv in der DLP_MAIN.INI.
+Function Test-DLPBehandlerModulAktiv {
+    [CmdletBinding()]
+    Param(
+        [String]$IniPath=$global:DlpAutoMainIni
+    )
+
+    (Get-DLPMainIniValue -Section 'Modus' -Key 'BehandlerModulAktiv' -DefaultValue '0' -IniPath $IniPath) -eq '1'
+}
+ 
 # Funktioniert nicht bei Consolen-Fenstern!!!
 Function Select-App {
     [CmdletBinding()]
