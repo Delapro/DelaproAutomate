@@ -27,6 +27,9 @@ Function New-Behandler {
         [ValidateSet('', 'J', 'N', '1', '2', '3', '4')]
         [String]$BehAutoPPass='',
         [String]$DlpMainIni=$global:DlpAutoMainIni,
+        [ScriptBlock]$OnFirstPage,
+        [ScriptBlock]$OnSecondPage,
+        [ScriptBlock]$OnSaved,
         [Switch]$StayOnFirstPage,
         [Switch]$StayOnSecondPage
     )
@@ -35,20 +38,31 @@ Function New-Behandler {
         throw 'Das Behandlermodul ist in der DLP_MAIN.INI nicht aktiviert.'
     }
 
-    If ($StayOnFirstPage -and $StayOnSecondPage) {
-        throw 'StayOnFirstPage und StayOnSecondPage können nicht gemeinsam verwendet werden.'
+    If ($StayOnFirstPage -and (-Not ($OnFirstPage))) {
+        throw 'StayOnFirstPage ist nur noch zusammen mit OnFirstPage zulässig. Der Codeblock wird ausgeführt und der Behandler danach mit F10 gespeichert.'
+    }
+    If ($StayOnSecondPage -and (-Not ($OnSecondPage))) {
+        throw 'StayOnSecondPage ist nur noch zusammen mit OnSecondPage zulässig. Der Codeblock wird ausgeführt und der Behandler danach mit F10 gespeichert.'
+    }
+    If ($StayOnFirstPage -or $StayOnSecondPage) {
+        Write-Warning 'StayOnFirstPage/StayOnSecondPage sind veraltet. Verwenden Sie direkt OnFirstPage bzw. OnSecondPage.'
     }
 
     If (Select-App -App $global:DlpAutoApp) {
         # Startpunkt muss die Behandlerübersicht des gewünschten Kunden sein.
         $ErsteSeite = "{F2}$BehNummer{ENTER}$BehStatus{ENTER}$BehAnrede{ENTER}$BehTitel{ENTER}$BehVorname{ENTER}$BehName{ENTER}$BehName2{ENTER}$BehZusatz{ENTER}$BehStrasse{ENTER}$BehPLZ{ENTER}$BehOrt{ENTER}$BehTelefon1{ENTER}$BehTelefon2{ENTER}$BehFax{ENTER}$BehEMail{ENTER}$BehAnredeFloskel"
-        If ($StayOnFirstPage) {
-            Send-Key -Keys $ErsteSeite
-            Return
-        }
-        Send-Key -Keys "$ErsteSeite{F10}"
+        Send-Key -Keys $ErsteSeite
 
-        # Beim Neuanlegen wird die zweite Seite automatisch geöffnet.
+        Invoke-DLPStateAction -Action $OnFirstPage -Module 'Behandler' -State 'FirstPage' -Data @{
+            BehandlerNummer = $BehNummer
+            Name = $BehName
+            Vorname = $BehVorname
+
+        # F10 speichert die erste Seite. Beim Neuanlegen wird anschließend
+        # automatisch die zweite Seite geöffnet.
+        Send-Key -Keys "{F10}"
+        Start-Sleep -Milliseconds 100
+
         If ($BehGeburtsdatum.HasValue) {
             Send-Key -Keys "$($BehGeburtsdatum.Value.ToShortDateString())"
         }
@@ -72,8 +86,22 @@ Function New-Behandler {
         If ($BehAutoPPass) {
             Send-Key -Keys "$BehAutoPPass"
         }
-        If (-Not ($StayOnSecondPage)) {
-            Send-Key -Keys "{F10}"
+
+        Invoke-DLPStateAction -Action $OnSecondPage -Module 'Behandler' -State 'SecondPage' -Data @{
+            BehandlerNummer = $BehNummer
+            Name = $BehName
+            Vorname = $BehVorname
+        }
+
+        # Erst nach dem Codeblock speichern. So zeigt ein Bildschirmabdruck
+        # den ausgefüllten Zustand, der anschließend auch dauerhaft vorhanden ist.
+        Send-Key -Keys "{F10}"
+        Start-Sleep -Milliseconds 100
+
+        Invoke-DLPStateAction -Action $OnSaved -Module 'Behandler' -State 'Saved' -Data @{
+            BehandlerNummer = $BehNummer
+            Name = $BehName
+            Vorname = $BehVorname
         }
     }
 }
@@ -137,4 +165,15 @@ Function Exit-BehandlerUmsatz {
     If (Select-App -App $global:DlpAutoApp) {
         Send-Key -Keys "{ESC}"
     }
+}
+
+Function Exit-Behandler {
+    [CmdletBinding()]
+    Param(
+        [Switch]$Save
+    )
+
+    # Nur für die Behandler-Eingabemaske verwenden. In der Übersicht ist
+    # F10 mit dem Listenmenü belegt.
+    Exit-DLPInputMask -Save:$Save
 }
