@@ -71,7 +71,48 @@ Function Test-DLPBehandlerModulAktiv {
 
     (Get-DLPMainIniValue -Section 'Modus' -Key 'BehandlerModulAktiv' -DefaultValue '0' -IniPath $IniPath) -eq '1'
 }
- 
+
+# Führt eine optionale Aktion in einem definierten Maskenzustand aus.
+# Der Codeblock erhält ein Kontextobjekt mit Modul, Zustand und Daten.
+Function Invoke-DLPStateAction {
+    [CmdletBinding()]
+    Param(
+        [ScriptBlock]$Action,
+        [Parameter(Mandatory)]
+        [String]$Module,
+        [Parameter(Mandatory)]
+        [String]$State,
+        [Hashtable]$Data=@{}
+    )
+
+    If ($Action) {
+        $Context = [PSCustomObject]@{
+            Module = $Module
+            State = $State
+            Data = [PSCustomObject]$Data
+        }
+        & $Action $Context
+    }
+}
+
+# Verlässt eine Eingabemaske. -Save darf nur verwendet werden, wenn F10
+# in der aktuellen Maske tatsächlich "Speichern" bedeutet.
+Function Exit-DLPInputMask {
+    [CmdletBinding()]
+    Param(
+        [Switch]$Save,
+        [String]$App=$global:DlpAutoApp
+    )
+
+    If (Select-App -App $App) {
+        If ($Save) {
+            Send-Key -Keys "{F10}"
+        } else {
+            Send-Key -Keys "{ESC}"
+        }
+    }
+}
+
 # Funktioniert nicht bei Consolen-Fenstern!!!
 Function Select-App {
     [CmdletBinding()]
