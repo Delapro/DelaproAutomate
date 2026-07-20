@@ -22,7 +22,7 @@ Function New-Kunde {
 
         # Vorhandene Tastensequenz zum Durchlaufen der ersten Kundenseite.
         Send-Key -Keys "{F2}$KundenNummerEingabe{ENTER}$KunAnrede{ENTER}$KunTitel{ENTER}$KunVorname{ENTER}$KunName"
-        If ($OnSecondPage) {
+        If ($OnFirstPage) {
             Invoke-DLPStateAction -Action $OnFirstPage -Module 'Kunde' -State 'FirstPage' -Data @{
                 KundenNummer = $KunNummer
                 Name = $KunName
