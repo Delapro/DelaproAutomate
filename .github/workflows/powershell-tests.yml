@@ -1,0 +1,54 @@
+name: PowerShell Tests
+
+on:
+  push:
+    paths:
+      - '**.PS1'
+      - 'README.md'
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - '**.PS1'
+      - 'README.md'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: ${{ matrix.os }} / ${{ matrix.engine }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Win22-PS51
+            os: windows-2022
+            shell: powershell
+            engine: Windows PowerShell 5.1
+          - name: Win22-PS7
+            os: windows-2022
+            shell: pwsh
+            engine: PowerShell 7
+          - name: Win25-PS51
+            os: windows-2025
+            shell: powershell
+            engine: Windows PowerShell 5.1
+          - name: Win25-PS7
+            os: windows-2025
+            shell: pwsh
+            engine: PowerShell 7
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v6
+
+      - name: PowerShell-Version anzeigen
+        shell: ${{ matrix.shell }}
+        run: $PSVersionTable | Format-List | Out-String | Write-Host
+
+      - name: Unit- und Ladetests ausführen
+        shell: ${{ matrix.shell }}
+        run: '& .\Tests\Invoke-UnitTests.PS1'
