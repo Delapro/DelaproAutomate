@@ -14,6 +14,8 @@ Function Initialize-Automation {
     $global:DlpAutoSendKeySleep = 10
     $global:DlpAutoApp = 'Delapro'
     $global:DlpAutoMainIni = 'C:\Delapro\DLP_MAIN.INI'
+    $global:DlpAutoTuiRows = 25
+    $global:DlpAutoTuiColumns = 80
 
 }
 
@@ -243,99 +245,411 @@ if (-not ([System.Management.Automation.PSTypeName]'KeyboardSend').Type) {
 	[KeyboardSend.KeyboardSend]::KeyUp("LWin")
 }
 
+# Lädt die für Fensterkoordinaten, Bildschirmkopien und Mausaktionen
+# benötigten Win32-Funktionen genau einmal.
+Function Initialize-DLPWindowApi {
+
+    If (-Not ([System.Management.Automation.PSTypeName]'DLPWindowApi').Type) {
+        Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+
+public static class DLPWindowApi
+{
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct POINT
+    {
+        public int X;
+        public int Y;
+    }
+
+    [DllImport("user32.dll", SetLastError=true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+    [DllImport("user32.dll", SetLastError=true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
+
+    [DllImport("user32.dll", SetLastError=true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool ClientToScreen(IntPtr hWnd, ref POINT lpPoint);
+
+    [DllImport("user32.dll", CharSet=CharSet.Auto, CallingConvention=CallingConvention.StdCall)]
+    public static extern void mouse_event(uint dwFlags, uint dx, uint dy, int dwData, UIntPtr dwExtraInfo);
+}
+"@
+    }
+}
+
+# Liefert das Hauptfensterhandle einer Anwendung.
+Function Get-DLPWindowHandle {
+    [CmdletBinding(DefaultParameterSetName='title')]
+    Param(
+        [Parameter(ParameterSetName='title')]
+        [ValidateNotNullOrEmpty()]
+        [String]$App=$global:DlpAutoApp,
+        [Parameter(ParameterSetName='process', Mandatory=$true)]
+        [ValidateRange(1, [Int32]::MaxValue)]
+        [Int]$ProcessID
+    )
+
+    If ($PSCmdlet.ParameterSetName -eq 'process') {
+        $Process = Get-Process -Id $ProcessID -ErrorAction Stop
+    } else {
+        $Process = Get-Process | Where-Object {
+            ($_.MainWindowTitle -eq $App) -and ($_.MainWindowHandle -ne 0)
+        } | Select-Object -First 1
+    }
+ 
+    If (($null -eq $Process) -or ($Process.MainWindowHandle -eq 0)) {
+        throw 'Das Fenster der Anwendung wurde nicht gefunden.'
+    }
+
+    [IntPtr]$Process.MainWindowHandle
+}
+
+# Liefert den Fenster- oder Clientbereich in absoluten Bildschirmkoordinaten.
+Function Get-DLPWindowRectangle {
+    [CmdletBinding(DefaultParameterSetName='title')]
+    Param(
+        [ValidateSet('Client', 'Window')]
+        [String]$Area='Client',
+        [Parameter(ParameterSetName='title')]
+        [ValidateNotNullOrEmpty()]
+        [String]$App=$global:DlpAutoApp,
+        [Parameter(ParameterSetName='process', Mandatory=$true)]
+        [ValidateRange(1, [Int32]::MaxValue)]
+        [Int]$ProcessID
+    )
+
+    Initialize-DLPWindowApi
+
+    If ($PSCmdlet.ParameterSetName -eq 'process') {
+        $WindowHandle = Get-DLPWindowHandle -ProcessID $ProcessID
+    } else {
+        $WindowHandle = Get-DLPWindowHandle -App $App
+    }
+
+    $Rectangle = New-Object DLPWindowApi+RECT
+
+    If ($Area -eq 'Window') {
+        If (-Not ([DLPWindowApi]::GetWindowRect($WindowHandle, [ref]$Rectangle))) {
+            throw 'Der Fensterbereich konnte nicht ermittelt werden.'
+        }
+
+        Return (New-Object System.Drawing.Rectangle -ArgumentList @(
+            $Rectangle.Left,
+            $Rectangle.Top,
+            ($Rectangle.Right - $Rectangle.Left),
+            ($Rectangle.Bottom - $Rectangle.Top)
+        ))
+    }
+
+    If (-Not ([DLPWindowApi]::GetClientRect($WindowHandle, [ref]$Rectangle))) {
+        throw 'Der Clientbereich konnte nicht ermittelt werden.'
+    }
+    $ClientOrigin = New-Object DLPWindowApi+POINT
+    $ClientOrigin.X = 0
+    $ClientOrigin.Y = 0
+
+    If (-Not ([DLPWindowApi]::ClientToScreen($WindowHandle, [ref]$ClientOrigin))) {
+        throw 'Der Clientbereich konnte nicht in Bildschirmkoordinaten umgerechnet werden.'
+    }
+ 
+    New-Object System.Drawing.Rectangle -ArgumentList @(
+        $ClientOrigin.X,
+        $ClientOrigin.Y,
+        ($Rectangle.Right - $Rectangle.Left),
+        ($Rectangle.Bottom - $Rectangle.Top)
+    )
+}
+
+# Behält die bisherige absolute Bildschirmpositionierung für bestehende Skripte bei.
 Function Set-MousePosition {
     [CmdletBinding()]
     Param(
-        [int]$XPos,
-        [int]$YPos
+        [Int]$XPos,
+        [Int]$YPos
     )
 
-    [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($XPos,$YPos)
+    [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($XPos, $YPos)
+}
 
+# Positioniert die Maus relativ zum Clientbereich des Delapro-Fensters.
+Function Set-DLPClientMousePosition {
+    [CmdletBinding(DefaultParameterSetName='title')]
+    Param(
+        [Parameter(Mandatory=$true)]
+        [ValidateRange(0, [Int32]::MaxValue)]
+        [Int]$ClientX,
+        [Parameter(Mandatory=$true)]
+        [ValidateRange(0, [Int32]::MaxValue)]
+        [Int]$ClientY,
+        [Parameter(ParameterSetName='title')]
+        [String]$App=$global:DlpAutoApp,
+        [Parameter(ParameterSetName='process', Mandatory=$true)]
+        [Int]$ProcessID
+    )
+
+    If ($PSCmdlet.ParameterSetName -eq 'process') {
+        $ClientRectangle = Get-DLPWindowRectangle -Area Client -ProcessID $ProcessID
+    } else {
+        $ClientRectangle = Get-DLPWindowRectangle -Area Client -App $App
+    }
+
+    If (($ClientX -ge $ClientRectangle.Width) -or ($ClientY -ge $ClientRectangle.Height)) {
+        throw 'Die gewünschte Position liegt außerhalb des Clientbereichs.'
+    }
+
+    Set-MousePosition -XPos ($ClientRectangle.X + $ClientX) -YPos ($ClientRectangle.Y + $ClientY)
 }
 
 Function Invoke-MouseEvent {
     [CmdletBinding()]
     Param(
-        [Validateset('LeftClick', 'RightClick', 'MiddleClick', 'Wheel')]
-        [string]$Button='LeftClick',
-        [int]$Delta
+        [ValidateSet('LeftClick', 'RightClick', 'MiddleClick', 'Wheel')]
+        [String]$Button='LeftClick',
+        [Int]$Delta
     )
 
-    $signature=@' 
-    [DllImport("user32.dll",CharSet=CharSet.Auto, CallingConvention=CallingConvention.StdCall)]
-    public static extern void mouse_event(long dwFlags, long dx, long dy, long cButtons, long dwExtraInfo);
-'@ 
+    Initialize-DLPWindowApi
 
-    # https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.control.mousewheel?view=net-5.0
-    $SendMouseEvent = Add-Type -memberDefinition $signature -name "Win32MouseEventNew" -namespace Win32Functions -passThru 
-    if($Button -eq "LeftClick")
-    {
-        $SendMouseEvent::mouse_event(0x00000002, 0, 0, 0, 0);
-        $SendMouseEvent::mouse_event(0x00000004, 0, 0, 0, 0);
+    Switch ($Button) {
+        'LeftClick' {
+            [DLPWindowApi]::mouse_event(0x00000002, 0, 0, 0, [UIntPtr]::Zero)
+            [DLPWindowApi]::mouse_event(0x00000004, 0, 0, 0, [UIntPtr]::Zero)
+        }
+        'RightClick' {
+            [DLPWindowApi]::mouse_event(0x00000008, 0, 0, 0, [UIntPtr]::Zero)
+            [DLPWindowApi]::mouse_event(0x00000010, 0, 0, 0, [UIntPtr]::Zero)
+        }
+        'MiddleClick' {
+            [DLPWindowApi]::mouse_event(0x00000020, 0, 0, 0, [UIntPtr]::Zero)
+            [DLPWindowApi]::mouse_event(0x00000040, 0, 0, 0, [UIntPtr]::Zero)
+        }
+        'Wheel' {
+            [DLPWindowApi]::mouse_event(0x00000800, 0, 0, $Delta, [UIntPtr]::Zero)
+        }
     }
-    if($Button -eq "RightClick")
-    {
-        $SendMouseEvent::mouse_event(0x00000008, 0, 0, 0, 0);
-        $SendMouseEvent::mouse_event(0x00000010, 0, 0, 0, 0);
-    }
-    if($Button -eq "MiddleClick")
-    {
-        $SendMouseEvent::mouse_event(0x00000020, 0, 0, 0, 0);
-        $SendMouseEvent::mouse_event(0x00000040, 0, 0, 0, 0);
-    }
-    if($Button -eq "Wheel")
-    {
-        $SendMouseEvent::mouse_event(0x00000800, 0, 0, $delta, 0);
-    }
-
 }
 
+# Ermittelt die aktuelle Zellgröße eines festen TUI-Rasters im Clientbereich.
+Function Get-DLPTuiGridMetrics {
+    [CmdletBinding(DefaultParameterSetName='title')]
+    Param(
+        [ValidateRange(1, 1000)]
+        [Int]$Rows=$global:DlpAutoTuiRows,
+        [ValidateRange(1, 1000)]
+        [Int]$Columns=$global:DlpAutoTuiColumns,
+        [ValidateRange(0, [Int32]::MaxValue)]
+        [Int]$PaddingLeft=0,
+        [ValidateRange(0, [Int32]::MaxValue)]
+        [Int]$PaddingTop=0,
+        [ValidateRange(0, [Int32]::MaxValue)]
+        [Int]$PaddingRight=0,
+        [ValidateRange(0, [Int32]::MaxValue)]
+        [Int]$PaddingBottom=0,
+        [Parameter(ParameterSetName='title')]
+        [String]$App=$global:DlpAutoApp,
+        [Parameter(ParameterSetName='process', Mandatory=$true)]
+        [Int]$ProcessID
+    )
+
+    If ($PSCmdlet.ParameterSetName -eq 'process') {
+        $ClientRectangle = Get-DLPWindowRectangle -Area Client -ProcessID $ProcessID
+    } else {
+        $ClientRectangle = Get-DLPWindowRectangle -Area Client -App $App
+    }
+
+    $UsableWidth = $ClientRectangle.Width - $PaddingLeft - $PaddingRight
+    $UsableHeight = $ClientRectangle.Height - $PaddingTop - $PaddingBottom
+
+    If (($UsableWidth -le 0) -or ($UsableHeight -le 0)) {
+        throw 'Die Randangaben lassen keinen nutzbaren TUI-Bereich übrig.'
+    }
+
+    [PSCustomObject]@{
+        Rows = $Rows
+        Columns = $Columns
+        ClientRectangle = $ClientRectangle
+        OriginX = $ClientRectangle.X + $PaddingLeft
+        OriginY = $ClientRectangle.Y + $PaddingTop
+        Width = $UsableWidth
+        Height = $UsableHeight
+        CellWidth = $UsableWidth / [Double]$Columns
+        CellHeight = $UsableHeight / [Double]$Rows
+   }
+}
+
+# Rechnet eine 1-basierte TUI-Zeile und -Spalte in Bildschirmkoordinaten um.
+Function Get-DLPTuiCellPoint {
+    [CmdletBinding(DefaultParameterSetName='title')]
+    Param(
+        [Parameter(Mandatory=$true)]
+        [ValidateRange(1, 1000)]
+        [Int]$Row,
+        [Parameter(Mandatory=$true)]
+        [ValidateRange(1, 1000)]
+        [Int]$Column,
+        [ValidateRange(1, 1000)]
+        [Int]$Rows=$global:DlpAutoTuiRows,
+        [ValidateRange(1, 1000)]
+        [Int]$Columns=$global:DlpAutoTuiColumns,
+        [Int]$PaddingLeft=0,
+        [Int]$PaddingTop=0,
+        [Int]$PaddingRight=0,
+        [Int]$PaddingBottom=0,
+        [Parameter(ParameterSetName='title')]
+        [String]$App=$global:DlpAutoApp,
+        [Parameter(ParameterSetName='process', Mandatory=$true)]
+        [Int]$ProcessID
+    )
+
+    If (($Row -gt $Rows) -or ($Column -gt $Columns)) {
+        throw 'Die gewünschte TUI-Zelle liegt außerhalb des angegebenen Rasters.'
+    }
+
+    $MetricParameter = @{
+        Rows = $Rows
+        Columns = $Columns
+        PaddingLeft = $PaddingLeft
+        PaddingTop = $PaddingTop
+        PaddingRight = $PaddingRight
+        PaddingBottom = $PaddingBottom
+    }
+
+    If ($PSCmdlet.ParameterSetName -eq 'process') {
+        $MetricParameter.ProcessID = $ProcessID
+    } else {
+        $MetricParameter.App = $App
+    }
+
+    $Metrics = Get-DLPTuiGridMetrics @MetricParameter
+
+    [PSCustomObject]@{
+        Row = $Row
+        Column = $Column
+        X = [Int][Math]::Round($Metrics.OriginX + (($Column - 0.5) * $Metrics.CellWidth))
+        Y = [Int][Math]::Round($Metrics.OriginY + (($Row - 0.5) * $Metrics.CellHeight))
+        CellWidth = $Metrics.CellWidth
+        CellHeight = $Metrics.CellHeight
+        ClientRectangle = $Metrics.ClientRectangle
+    }
+}
+
+Function Set-DLPTuiMousePosition {
+    [CmdletBinding(DefaultParameterSetName='title')]
+    Param(
+        [Parameter(Mandatory=$true)]
+        [Int]$Row,
+        [Parameter(Mandatory=$true)]
+        [Int]$Column,
+        [Int]$Rows=$global:DlpAutoTuiRows,
+        [Int]$Columns=$global:DlpAutoTuiColumns,
+        [Int]$PaddingLeft=0,
+        [Int]$PaddingTop=0,
+        [Int]$PaddingRight=0,
+        [Int]$PaddingBottom=0,
+        [Parameter(ParameterSetName='title')]
+        [String]$App=$global:DlpAutoApp,
+        [Parameter(ParameterSetName='process', Mandatory=$true)]
+        [Int]$ProcessID
+    )
+
+    $PointParameter = @{
+        Row = $Row
+        Column = $Column
+        Rows = $Rows
+        Columns = $Columns
+        PaddingLeft = $PaddingLeft
+        PaddingTop = $PaddingTop
+        PaddingRight = $PaddingRight
+        PaddingBottom = $PaddingBottom
+    }
+
+    If ($PSCmdlet.ParameterSetName -eq 'process') {
+        $PointParameter.ProcessID = $ProcessID
+    } else {
+        $PointParameter.App = $App
+    }
+
+    $Point = Get-DLPTuiCellPoint @PointParameter
+    Set-MousePosition -XPos $Point.X -YPos $Point.Y
+    $Point
+}
+
+Function Invoke-DLPTuiClick {
+    [CmdletBinding(DefaultParameterSetName='title')]
+    Param(
+        [Parameter(Mandatory=$true)]
+        [Int]$Row,
+        [Parameter(Mandatory=$true)]
+        [Int]$Column,
+        [Int]$Rows=$global:DlpAutoTuiRows,
+        [Int]$Columns=$global:DlpAutoTuiColumns,
+        [Int]$PaddingLeft=0,
+        [Int]$PaddingTop=0,
+        [Int]$PaddingRight=0,
+        [Int]$PaddingBottom=0,
+        [ValidateSet('LeftClick', 'RightClick', 'MiddleClick')]
+        [String]$Button='LeftClick',
+        [Int]$DelayMilliseconds=100,
+        [Parameter(ParameterSetName='title')]
+        [String]$App=$global:DlpAutoApp,
+        [Parameter(ParameterSetName='process', Mandatory=$true)]
+        [Int]$ProcessID
+    )
+
+    If ($PSCmdlet.ParameterSetName -eq 'process') {
+        If (-Not (Select-App -ProcessID $ProcessID)) {
+            throw 'Die Anwendung konnte nicht aktiviert werden.'
+        }
+        $Point = Set-DLPTuiMousePosition -Row $Row -Column $Column -Rows $Rows -Columns $Columns `
+            -PaddingLeft $PaddingLeft -PaddingTop $PaddingTop -PaddingRight $PaddingRight `
+            -PaddingBottom $PaddingBottom -ProcessID $ProcessID
+    } else {
+        If (-Not (Select-App -App $App)) {
+            throw 'Die Anwendung konnte nicht aktiviert werden.'
+        }
+        $Point = Set-DLPTuiMousePosition -Row $Row -Column $Column -Rows $Rows -Columns $Columns `
+            -PaddingLeft $PaddingLeft -PaddingTop $PaddingTop -PaddingRight $PaddingRight `
+            -PaddingBottom $PaddingBottom -App $App
+    }
+
+    If ($DelayMilliseconds -gt 0) {
+        Start-Sleep -Milliseconds $DelayMilliseconds
+    }
+
+    Invoke-MouseEvent -Button $Button
+    $Point
+}
+
+# Kopiert einen beliebigen Bereich des sichtbaren Bildschirms.
+# Width und Height sind Ausdehnungen und keine rechten/unteren Koordinaten.
 Function Copy-Screen {
     [CmdletBinding()]
     Param(
-        [int]$X,
-        [int]$Y,
-        [int]$Width,
-        [int]$Height,
-        [String]$path=(New-TemporaryFile)
-    )
-
-    $bounds = [System.Drawing.Rectangle]::FromLTRB($X, $Y, $Width, $Height)
-    $bmp = New-Object Drawing.Bitmap $bounds.width, $bounds.height
-    $graphics = [System.Drawing.Graphics]::FromImage($bmp)
-    $graphics.CopyFromScreen($bounds.Location.X, $bounds.Location.Y, 0, 0, $bound.Size)
-    $bmp.Save($path)
-    $graphics.Dispose()
-    $bmp.Dispose()
-
-    $path
-}
-
-Function Save-ActiveWindow {
-    [CmdletBinding()]
-    Param(
-        [String]$Path=((New-TemporaryFile).Fullname.Replace('.tmp', '.png')),
-        [String]$App='Delapro'
-    )
-
-    Select-App -App $App
-    Send-Key -Keys "%{PrtSc}"
-    Start-Sleep -Milliseconds 200
-
-    $bitmap = [Windows.Forms.Clipboard]::GetImage()
-    $bitmap.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
-
-    $path
-}
-
-Function Save-DLPDocumentationWindow {
-    [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory)]
-        [String]$Path,
-        [String]$App=$global:DlpAutoApp,
-        [Int]$DelayMilliseconds=300
+        [Parameter(Mandatory=$true)]
+        [Int]$X,
+        [Parameter(Mandatory=$true)]
+        [Int]$Y,
+        [Parameter(Mandatory=$true)]
+        [ValidateRange(1, [Int32]::MaxValue)]
+        [Int]$Width,
+        [Parameter(Mandatory=$true)]
+        [ValidateRange(1, [Int32]::MaxValue)]
+        [Int]$Height,
+        [String]$Path=((New-TemporaryFile).FullName.Replace('.tmp', '.png'))
     )
 
     $Directory = Split-Path -Parent $Path
@@ -343,11 +657,194 @@ Function Save-DLPDocumentationWindow {
         New-Item -ItemType Directory -Path $Directory -Force | Out-Null
     }
 
+    $Bounds = New-Object System.Drawing.Rectangle -ArgumentList $X, $Y, $Width, $Height
+    $Bitmap = New-Object System.Drawing.Bitmap -ArgumentList $Bounds.Width, $Bounds.Height
+    $Graphics = [System.Drawing.Graphics]::FromImage($Bitmap)
+
+    try {
+        $Graphics.CopyFromScreen($Bounds.Location.X, $Bounds.Location.Y, 0, 0, $Bounds.Size)
+        $Bitmap.Save($Path, [System.Drawing.Imaging.ImageFormat]::Png)
+    } finally {
+        $Graphics.Dispose()
+        $Bitmap.Dispose()
+    }
+
+    $Path
+}
+
+# Kopiert einen Ausschnitt relativ zum Clientbereich des Delapro-Fensters.
+Function Copy-DLPClientArea {
+    [CmdletBinding(DefaultParameterSetName='title')]
+    Param(
+        [Parameter(Mandatory=$true)]
+        [Int]$X,
+        [Parameter(Mandatory=$true)]
+        [Int]$Y,
+        [Parameter(Mandatory=$true)]
+        [Int]$Width,
+        [Parameter(Mandatory=$true)]
+        [Int]$Height,
+        [String]$Path=((New-TemporaryFile).FullName.Replace('.tmp', '.png')),
+        [Int]$DelayMilliseconds=200,
+        [Parameter(ParameterSetName='title')]
+        [String]$App=$global:DlpAutoApp,
+        [Parameter(ParameterSetName='process', Mandatory=$true)]
+        [Int]$ProcessID
+    )
+
+    If ($PSCmdlet.ParameterSetName -eq 'process') {
+        If (-Not (Select-App -ProcessID $ProcessID)) {
+            throw 'Die Anwendung konnte nicht aktiviert werden.'
+        }
+        $ClientRectangle = Get-DLPWindowRectangle -Area Client -ProcessID $ProcessID
+    } else {
+        If (-Not (Select-App -App $App)) {
+            throw 'Die Anwendung konnte nicht aktiviert werden.'
+        }
+        $ClientRectangle = Get-DLPWindowRectangle -Area Client -App $App
+    }
+
     If ($DelayMilliseconds -gt 0) {
         Start-Sleep -Milliseconds $DelayMilliseconds
     }
 
-    Save-ActiveWindow -Path $Path -App $App
+    If (($X -lt 0) -or ($Y -lt 0) -or (($X + $Width) -gt $ClientRectangle.Width) -or
+        (($Y + $Height) -gt $ClientRectangle.Height)) {
+        throw 'Der gewünschte Ausschnitt liegt außerhalb des Clientbereichs.'
+    }
+
+    Copy-Screen -X ($ClientRectangle.X + $X) -Y ($ClientRectangle.Y + $Y) `
+        -Width $Width -Height $Height -Path $Path
+}
+
+# Kopiert einen durch TUI-Zeilen und -Spalten beschriebenen Ausschnitt.
+Function Copy-DLPTuiArea {
+    [CmdletBinding(DefaultParameterSetName='title')]
+    Param(
+        [Parameter(Mandatory=$true)]
+        [Int]$StartRow,
+        [Parameter(Mandatory=$true)]
+        [Int]$StartColumn,
+        [Parameter(Mandatory=$true)]
+        [Int]$EndRow,
+        [Parameter(Mandatory=$true)]
+        [Int]$EndColumn,
+        [Int]$Rows=$global:DlpAutoTuiRows,
+        [Int]$Columns=$global:DlpAutoTuiColumns,
+        [Int]$PaddingLeft=0,
+        [Int]$PaddingTop=0,
+        [Int]$PaddingRight=0,
+        [Int]$PaddingBottom=0,
+        [String]$Path=((New-TemporaryFile).FullName.Replace('.tmp', '.png')),
+        [Int]$DelayMilliseconds=200,
+        [Parameter(ParameterSetName='title')]
+        [String]$App=$global:DlpAutoApp,
+        [Parameter(ParameterSetName='process', Mandatory=$true)]
+        [Int]$ProcessID
+    )
+
+    If (($StartRow -lt 1) -or ($StartColumn -lt 1) -or
+        ($EndRow -lt $StartRow) -or ($EndColumn -lt $StartColumn) -or
+        ($EndRow -gt $Rows) -or ($EndColumn -gt $Columns)) {
+        throw 'Der gewünschte TUI-Ausschnitt ist ungültig.'
+    }
+
+    $MetricParameter = @{
+        Rows = $Rows
+        Columns = $Columns
+        PaddingLeft = $PaddingLeft
+        PaddingTop = $PaddingTop
+        PaddingRight = $PaddingRight
+        PaddingBottom = $PaddingBottom
+    }
+
+    If ($PSCmdlet.ParameterSetName -eq 'process') {
+        If (-Not (Select-App -ProcessID $ProcessID)) {
+            throw 'Die Anwendung konnte nicht aktiviert werden.'
+        }
+        $MetricParameter.ProcessID = $ProcessID
+    } else {
+        If (-Not (Select-App -App $App)) {
+            throw 'Die Anwendung konnte nicht aktiviert werden.'
+        }
+        $MetricParameter.App = $App
+    }
+
+    If ($DelayMilliseconds -gt 0) {
+        Start-Sleep -Milliseconds $DelayMilliseconds
+    }
+
+    $Metrics = Get-DLPTuiGridMetrics @MetricParameter
+    $X = [Int][Math]::Floor($Metrics.OriginX + (($StartColumn - 1) * $Metrics.CellWidth))
+    $Y = [Int][Math]::Floor($Metrics.OriginY + (($StartRow - 1) * $Metrics.CellHeight))
+    $Right = [Int][Math]::Ceiling($Metrics.OriginX + ($EndColumn * $Metrics.CellWidth))
+    $Bottom = [Int][Math]::Ceiling($Metrics.OriginY + ($EndRow * $Metrics.CellHeight))
+
+    Copy-Screen -X $X -Y $Y -Width ($Right - $X) -Height ($Bottom - $Y) -Path $Path
+}
+
+# Speichert das aktive Fenster. Standardmäßig bleibt aus Gründen der
+# Rückwärtskompatibilität der Windows-Rahmen enthalten.
+Function Save-ActiveWindow {
+    [CmdletBinding(DefaultParameterSetName='title')]
+    Param(
+        [String]$Path=((New-TemporaryFile).FullName.Replace('.tmp', '.png')),
+        [ValidateSet('Client', 'Window')]
+        [String]$CaptureArea='Window',
+        [Int]$DelayMilliseconds=200,
+        [Parameter(ParameterSetName='title')]
+        [String]$App=$global:DlpAutoApp,
+        [Parameter(ParameterSetName='process', Mandatory=$true)]
+        [Int]$ProcessID
+    )
+
+    If ($PSCmdlet.ParameterSetName -eq 'process') {
+        If (-Not (Select-App -ProcessID $ProcessID)) {
+            throw 'Die Anwendung konnte nicht aktiviert werden.'
+        }
+    } else {
+        If (-Not (Select-App -App $App)) {
+            throw 'Die Anwendung konnte nicht aktiviert werden.'
+        }
+    }
+
+    If ($DelayMilliseconds -gt 0) {
+        Start-Sleep -Milliseconds $DelayMilliseconds
+    }
+
+    If ($PSCmdlet.ParameterSetName -eq 'process') {
+        $Bounds = Get-DLPWindowRectangle -Area $CaptureArea -ProcessID $ProcessID
+    } else {
+        $Bounds = Get-DLPWindowRectangle -Area $CaptureArea -App $App
+    }
+
+    Copy-Screen -X $Bounds.X -Y $Bounds.Y -Width $Bounds.Width -Height $Bounds.Height -Path $Path
+}
+
+# Dokumentationsbilder enthalten standardmäßig nur den Clientbereich.
+# Mit -CaptureArea Window kann weiterhin der komplette Windows-Rahmen
+# aufgenommen werden.
+Function Save-DLPDocumentationWindow {
+    [CmdletBinding(DefaultParameterSetName='title')]
+    Param(
+        [Parameter(Mandatory=$true)]
+        [String]$Path,
+        [ValidateSet('Client', 'Window')]
+        [String]$CaptureArea='Client',
+        [Int]$DelayMilliseconds=300,
+        [Parameter(ParameterSetName='title')]
+        [String]$App=$global:DlpAutoApp,
+        [Parameter(ParameterSetName='process', Mandatory=$true)]
+        [Int]$ProcessID
+    )
+
+    If ($PSCmdlet.ParameterSetName -eq 'process') {
+        Save-ActiveWindow -Path $Path -CaptureArea $CaptureArea `
+            -DelayMilliseconds $DelayMilliseconds -ProcessID $ProcessID
+    } else {
+        Save-ActiveWindow -Path $Path -CaptureArea $CaptureArea `
+            -DelayMilliseconds $DelayMilliseconds -App $App
+    }
 }
  
 Function Exit-AcrobatReader {
