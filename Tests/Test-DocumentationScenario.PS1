@@ -31,7 +31,7 @@ foreach ($FilePath in $FilesToCheck) {
         '-(?:KunNummer|AufKunNummer)\s+[''''"](?<Number>\d{4,})[''''"]'
     )
     If ($InvalidNumbers.Count -gt 0) {
-        throw "Zu lange Kundennummer in $FilePath: $($InvalidNumbers[0].Groups['Number'].Value)"
+        throw ('Zu lange Kundennummer in {0}: {1}' -f $FilePath, $InvalidNumbers[0].Groups['Number'].Value)
     }
 }
 
