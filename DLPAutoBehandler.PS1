@@ -57,6 +57,7 @@ Function New-Behandler {
             BehandlerNummer = $BehNummer
             Name = $BehName
             Vorname = $BehVorname
+        }
 
         # F10 speichert die erste Seite. Beim Neuanlegen wird anschließend
         # automatisch die zweite Seite geöffnet.
