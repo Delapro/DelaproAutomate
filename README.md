@@ -50,8 +50,8 @@ Exit-KundeBehandler
 Auftrag mit oder ohne Behandler anlegen:
 
 ```Powershell
-New-Auftrag -AufKunNummer '9001' -AufBehandlerNummer '001'
-New-Auftrag -AufKunNummer '9001' -AufBehandlerNummer ''
+New-Auftrag -AufKunNummer '001' -AufBehandlerNummer '001'
+New-Auftrag -AufKunNummer '001' -AufBehandlerNummer ''
 ```
 
 Ist das Behandlermodul nicht aktiv, bedient `New-Auftrag` nur das Kundennummernfeld. Ist es aktiv, wird zusätzlich das Behandlerfeld ausgefüllt oder bewusst leer bestätigt.
@@ -135,3 +135,84 @@ Exit-BehandlerUmsatz
 ```
 
 Die früheren Schalter `StayOnFirstPage`, `StayOnSecondPage` und `StayInHeader` werden nur noch aus Kompatibilitätsgründen erkannt. Sie dürfen nur zusammen mit dem passenden Codeblock verwendet werden und lassen keine ungespeicherten Daten mehr zurück.
+
+## Fenster- und Clientbereich aufnehmen
+
+`Save-ActiveWindow` behält aus Kompatibilitätsgründen das bisherige Verhalten bei und speichert ohne weitere Angabe das komplette Fenster mit Windows-Rahmen:
+
+```Powershell
+Save-ActiveWindow -Path '.\Bilder\Delapro-mit-Rahmen.png'
+```
+
+Nur der eigentliche Delapro-Inhalt wird mit `-CaptureArea Client` gespeichert:
+
+```Powershell
+Save-ActiveWindow `
+    -Path '.\Bilder\Delapro-Client.png' `
+    -CaptureArea Client
+```
+
+`Save-DLPDocumentationWindow` verwendet für Handbuchbilder standardmäßig den Clientbereich. Der Rahmen kann ausdrücklich zugeschaltet werden:
+
+```Powershell
+Save-DLPDocumentationWindow -Path '.\Bilder\Maske.png'
+Save-DLPDocumentationWindow -Path '.\Bilder\Maske-mit-Rahmen.png' -CaptureArea Window
+```
+
+Die Aufnahme wird nicht mehr über `Alt+Druck` und die Zwischenablage erzeugt. Die Funktionen ermitteln den tatsächlichen Fenster- beziehungsweise Clientbereich und kopieren diesen sichtbaren Bildschirmbereich direkt in eine PNG-Datei.
+
+`Copy-Screen` speichert einen frei gewählten Bildschirmbereich. `Width` und `Height` sind dabei echte Breiten- und Höhenangaben:
+
+```Powershell
+Copy-Screen -X 100 -Y 100 -Width 800 -Height 500 -Path '.\Bilder\Ausschnitt.png'
+```
+
+Für Koordinaten relativ zum Delapro-Inhalt steht `Copy-DLPClientArea` zur Verfügung:
+
+```Powershell
+Copy-DLPClientArea -X 20 -Y 40 -Width 500 -Height 260 -Path '.\Bilder\Maskenausschnitt.png'
+```
+
+## Mauspositionen im TUI-Raster
+
+Absolute Bildschirmkoordinaten bleiben mit `Set-MousePosition` möglich, sind aber von Fensterposition, Auflösung und Skalierung abhängig. Für Delapro sollte deshalb nach öglichkeit mit dem Clientbereich oder einem festen TUI-Raster gearbeitet werden.
+
+Die Standardwerte werden bei `Initialize-Automation` gesetzt:
+
+```Powershell
+$global:DlpAutoTuiRows = 25
+$global:DlpAutoTuiColumns = 80
+```
+
+Eine 1-basierte TUI-Position kann damit unabhängig von Fenstergröße und Bildschirmauflösung angesprochen werden:
+
+```Powershell
+Set-DLPTuiMousePosition -Row 5 -Column 30
+Invoke-DLPTuiClick -Row 5 -Column 30
+```
+
+Die aktuelle Zellbreite und -höhe wird aus dem tatsächlichen Clientbereich berechnet. Gibt es innerhalb des Clientbereichs zusätzliche Ränder, können diese als Padding angegeben werden:
+
+```Powershell
+Invoke-DLPTuiClick `
+    -Row 5 `
+    -Column 30 `
+    -PaddingLeft 4 `
+    -PaddingTop 3 `
+    -PaddingRight 4 `
+    -PaddingBottom 3
+```
+
+Auch Bildausschnitte können durch TUI-Zeilen und -Spalten beschrieben werden:
+
+```Powershell
+Copy-DLPTuiArea `
+    -StartRow 3 `
+    -StartColumn 10 `
+    -EndRow 18 `
+    -EndColumn 70 `
+    -Path '.\Bilder\Tui-Ausschnitt.png'
+```
+
+Tastatursteuerung bleibt für die eigentliche Delapro-Bedienung der bevorzugte Weg. Mausfunktionen sind nur dann zuverlässig, wenn das angegebene Zeilen-/Spaltenraster tatsächlich dem dargestellten TUI-Raster entspricht und Delapro an der betreffenden Stelle Mausklicks verarbeitet.
+
