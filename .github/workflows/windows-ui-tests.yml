@@ -1,0 +1,73 @@
+name: Windows UI Tests
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hosted-server-ui:
+    name: Screenshot / ${{ matrix.os }} / ${{ matrix.engine }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            shell: powershell
+            engine: Windows PowerShell 5.1
+          - os: windows-2022
+            shell: pwsh
+            engine: PowerShell 7
+          - os: windows-2025
+            shell: powershell
+            engine: Windows PowerShell 5.1
+          - os: windows-2025
+            shell: pwsh
+            engine: PowerShell 7
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v6
+
+      - name: Fenster- und Clientaufnahme testen
+        shell: ${{ matrix.shell }}
+        run: '& .\Tests\Test-ScreenCapture.PS1 -OutputDirectory ".\TestResults\${{ matrix.os }}-${{ matrix.engine }}"'
+
+      - name: Testbilder hochladen
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: screenshots-${{ matrix.os }}-${{ matrix.engine }}
+          path: TestResults
+          if-no-files-found: ignore
+
+  self-hosted-client-ui:
+    name: Screenshot / Windows-Client / Windows PowerShell 5.1
+    if: ${{ vars.DLP_RUN_CLIENT_UI_TESTS == 'true' }}
+    runs-on: [self-hosted, windows, x64, dlp-ui-client]
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v6
+
+      - name: Interaktive Sitzung prüfen
+        shell: powershell
+        run: |
+          Write-Host "Session: $env:SESSIONNAME"
+          If ([Environment]::UserInteractive -ne $true) {
+              throw 'Der Self-hosted Runner läuft nicht in einer interaktiven Benutzersitzung.'
+          }
+
+      - name: Fenster- und Clientaufnahme testen
+        shell: powershell
+        run: '& .\Tests\Test-ScreenCapture.PS1 -OutputDirectory ".\TestResults\windows-client"'
+
+      - name: Testbilder hochladen
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: screenshots-windows-client
+          path: TestResults
+          if-no-files-found: ignore
