@@ -34,9 +34,10 @@ Function New-Kunde {
 
         If ($OnSecondPage) {
             Invoke-DLPStateAction -Action $OnSecondPage -Module 'Kunde' -State 'SecondPage' -Data @{
-            KundenNummer = $KunNummer
-            Name = $KunName
-            Vorname = $KunVorname
+                KundenNummer = $KunNummer
+                Name = $KunName
+                Vorname = $KunVorname
+            }
         }
         Send-Key -Keys "{PGDN}"
         Start-Sleep -Milliseconds 100
