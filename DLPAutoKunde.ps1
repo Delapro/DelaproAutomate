@@ -49,13 +49,12 @@ Function New-Kunde {
                 Vorname = $KunVorname
             }
         }
-        Send-Key -Keys "{F10}"
-        # Die zweite Seite abschließen, damit der Kunde dauerhaft angelegt ist.
-        Send-Key -Keys "{F10}"
-        Start-Sleep -Milliseconds 100
+
+        # Speichert den Kunden und schließt die Seiten
         Send-Key -Keys "{F10}"
         Start-Sleep -Milliseconds 100
 
+        # Jetzt ist wieder die Kundenverwaltung aktiv
         If ($OnSaved) {
             Invoke-DLPStateAction -Action $OnSaved -Module 'Kunde' -State 'Saved' -Data @{
                 KundenNummer = $KunNummer
