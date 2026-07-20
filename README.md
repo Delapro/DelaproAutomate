@@ -81,7 +81,7 @@ Beim Kunden können mehrere Zustände separat behandelt werden:
 
 ```Powershell
 New-Kunde `
-    -KunNummer '9001' `
+    -KunNummer '001' `
     -KunName 'Gemeinschaftspraxis' `
     -OnFirstPage  { Save-DLPDocumentationWindow -Path '.\Bilder\Kunde-Seite1.png' } `
     -OnThirdPage  { Save-DLPDocumentationWindow -Path '.\Bilder\Kunde-Seite3.png' } `
@@ -94,7 +94,7 @@ Die Behandlerauswahl und der ausgefüllte Auftragskopf können in einem vollstä
 
 ```Powershell
 New-Auftrag `
-    -AufKunNummer '9001' `
+    -AufKunNummer '001' `
     -AufBehandlerNummer '001' `
     -OnBehandlerSelection {
         Save-DLPDocumentationWindow -Path '.\Bilder\Auftrag-Behandlerauswahl.png'
@@ -216,3 +216,10 @@ Copy-DLPTuiArea `
 
 Tastatursteuerung bleibt für die eigentliche Delapro-Bedienung der bevorzugte Weg. Mausfunktionen sind nur dann zuverlässig, wenn das angegebene Zeilen-/Spaltenraster tatsächlich dem dargestellten TUI-Raster entspricht und Delapro an der betreffenden Stelle Mausklicks verarbeitet.
 
+## Automatisierte Tests
+
+Die grundlegenden PowerShell-Tests laufen bei Pushes und Pull Requests auf Windows Server 2022 und Windows Server 2025 sowie unter Windows PowerShell 5.1 und PowerShell 7. Geprüft werden unter anderem Syntax, das Laden der Funktionsdateien, die INI-Auswertung, Masken-Codeblöcke und die erzeugten Tastensequenzen.
+
+Der Workflow **Windows UI Tests** wird manuell gestartet. Er erzeugt ein Testfenster und prüft die Bildschirmaufnahme des vollständigen Fensters, des Clientbereichs und eines Clientausschnitts. Die erzeugten PNG-Dateien werden als Workflow-Artefakt gespeichert.
+
+Ein zusätzlicher UI-Test auf einem Windows-10-/Windows-11-Client kann über einen interaktiv gestarteten Self-hosted Runner mit dem benutzerdefinierten Label `dlp-ui-client` aktiviert werden. Dazu ist die Repository-Variable `DLP_RUN_CLIENT_UI_TESTS` auf `true` zu setzen.
