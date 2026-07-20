@@ -24,21 +24,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Win22-PS51
+          - name: Win2022-PS51
             os: windows-2022
-            shell: powershell
+            executable: powershell.exe
             engine: Windows PowerShell 5.1
-          - name: Win22-PS7
+          - name: Win2022-PS7
             os: windows-2022
-            shell: pwsh
+            executable: pwsh.exe
             engine: PowerShell 7
-          - name: Win25-PS51
+          - name: Win2025-PS51
             os: windows-2025
-            shell: powershell
+            executable: powershell.exe
             engine: Windows PowerShell 5.1
-          - name: Win25-PS7
+          - name: Win2025-PS7
             os: windows-2025
-            shell: pwsh
+            executable: pwsh.exe
             engine: PowerShell 7
 
     steps:
@@ -46,9 +46,19 @@ jobs:
         uses: actions/checkout@v6
 
       - name: PowerShell-Version anzeigen
-        shell: ${{ matrix.shell }}
-        run: $PSVersionTable | Format-List | Out-String | Write-Host
+        shell: pwsh
+        run: |
+          $PowerShellExecutable = '${{ matrix.executable }}'
+          & $PowerShellExecutable -NoLogo -NoProfile -NonInteractive -Command '$PSVersionTable | Format-List | Out-String | Write-Host'
+          If ($LASTEXITCODE -ne 0) {
+              Exit $LASTEXITCODE
+          }
 
       - name: Unit- und Ladetests ausführen
-        shell: ${{ matrix.shell }}
-        run: '& .\Tests\Invoke-UnitTests.PS1'
+        shell: pwsh
+        run: |
+          $PowerShellExecutable = '${{ matrix.executable }}'
+          & $PowerShellExecutable -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File '.\Tests\Invoke-UnitTests.PS1'
+          If ($LASTEXITCODE -ne 0) {
+              Exit $LASTEXITCODE
+          }
