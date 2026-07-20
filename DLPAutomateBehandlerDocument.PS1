@@ -44,8 +44,8 @@ Function New-BehandlerDokumentationsStammdaten {
     New-Kunde -KunNummer $KunNummer -KunAnrede 'Praxis' -KunName 'Gemeinschaftspraxis am Stadtpark' @KundeParameter
 
     Enter-KundeBehandler
-    New-Behandler -BehNummer '001' -BehAnrede 'Zahnärztin' -BehTitel 'Dr. med. dent.' -BehVorname 'Anna' -BehName 'Weber' -BehEMail 'anna.weber@example.invalid'
     New-Behandler -BehNummer '001' -BehAnrede 'Zahnärztin' -BehTitel 'Dr. med. dent.' -BehVorname 'Anna' -BehName 'Weber' -BehEMail 'anna.weber@example.invalid' @BehandlerParameter
+    New-Behandler -BehNummer '002' -BehAnrede 'Zahnarzt' -BehTitel 'Dr. med. dent.' -BehVorname 'Markus' -BehName 'Klein' -BehEMail 'markus.klein@example.invalid'
     New-Behandler -BehNummer '003' -BehAnrede 'Zahnärztin' -BehTitel 'Dr. med. dent.' -BehVorname 'Lea' -BehName 'Vogel' -BehEMail 'lea.vogel@example.invalid'
     
     If ($ImageDirectory) {
