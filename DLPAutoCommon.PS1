@@ -6,8 +6,8 @@
 Function Initialize-Automation {
 
     Add-Type -AssemblyName System.Windows.Forms
-    [void] [System.Reflection.Assembly]::LoadWithPartialName("'Microsoft.VisualBasic")
-    [void] [System.Reflection.Assembly]::LoadWithPartialName("'System.Drawing")
+    Add-Type -AssemblyName Microsoft.VisualBasic
+    Add-Type -AssemblyName System.Drawing
     Add-Type -AssemblyName System.Speech
 
     $global:DlpAutoSelectAppSleep = 100
@@ -16,7 +16,6 @@ Function Initialize-Automation {
     $global:DlpAutoMainIni = 'C:\Delapro\DLP_MAIN.INI'
     $global:DlpAutoTuiRows = 25
     $global:DlpAutoTuiColumns = 80
-
 }
 
 # Liest einen Wert aus der DLP_MAIN.INI. Die Funktion ist bewusst einfach
