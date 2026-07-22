@@ -13,6 +13,8 @@ Hat man die normalen DelaproInstall-Skripte geladen, kann man mit dem Befehl
 
 die Automatisierungsskripte automatisch nachladen. Danach stehen einem die Funktionen zur Verfügung.
 
+Fügt man neue Automationsskripte hinzu müssen diese in <Code>AutoLoadFiles.json</Code> eingetragen werden, damit sie bei <Code>Invoke-DelaproAutomateDownloadAndInit</Code> automatisch geladen werden.
+
 > **Hinweis zu älteren Versionen**
 >
 > Die Scripts werden ausschließlich unter Windows 10 1909 und neuer getestet.
